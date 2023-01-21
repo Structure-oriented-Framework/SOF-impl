@@ -11,11 +11,17 @@ export class LogTunnel<
   }
   name;
   listenerA(params: ParamsA2B): boolean {
-    console.log("LogTunnel [" + this.name + "]: A2B ", params);
+    console.log(
+      "LogTunnel [" + this.name + "]: A2B ",
+      params.length < 2 ? params[0] : params
+    );
     return this.portB.send(...params);
   }
   listenerB(params: ParamsB2A): boolean {
-    console.log("LogTunnel [" + this.name + "]: B2A ", params);
+    console.log(
+      "LogTunnel [" + this.name + "]: B2A ",
+      params.length < 2 ? params[0] : params
+    );
     return this.portA.send(...params);
   }
 }
