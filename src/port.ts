@@ -7,8 +7,9 @@ export type Receiver<Params extends Param[]> = (...params: Params) => boolean;
 export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
   protected receiver: Receiver<ParamsO> | null = null;
 
-  setReceiver(receiver: Receiver<ParamsO>): void {
+  setReceiver(receiver: Receiver<ParamsO>): boolean {
     this.receiver = receiver;
+    return true;
   }
 
   send(...params: ParamsO): boolean {
@@ -21,9 +22,11 @@ export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
   static connect<ParamsA2B extends Param[], ParamsB2A extends Param[]>(
     portA: Port<ParamsB2A, ParamsA2B>,
     portB: Port<ParamsA2B, ParamsB2A>
-  ) {
-    portA.setReceiver(portB._recv.bind(portB));
-    portB.setReceiver(portA._recv.bind(portA));
+  ): boolean {
+    return (
+      portA.setReceiver(portB._recv.bind(portB)) &&
+      portB.setReceiver(portA._recv.bind(portA))
+    );
   }
 }
 
