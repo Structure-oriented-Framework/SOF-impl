@@ -1,6 +1,6 @@
-import { Port } from "./port.js";
+import { Param, Port } from "./port.js";
 
-export class LogPort<ParamsI extends any[], ParamsO extends any[]> extends Port<
+export class LogPort<ParamsI extends Param[], ParamsO extends Param[]> extends Port<
   ParamsI,
   ParamsO
 > {

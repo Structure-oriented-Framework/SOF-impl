@@ -1,19 +1,18 @@
-import { Port, type PortToConnect } from "./port.js";
+import { Param, Port, type PortToConnect } from "./port.js";
+import { Selector, SelectorMap } from "./selector.js";
 
-export type ExtenderSelector = symbol;
-
-export type ExtenderSigleSideI<ParamsDistribute extends any[]> = [
-  to: ExtenderSelector,
+export type ExtenderSigleSideI<ParamsDistribute extends Param[]> = [
+  to: Selector,
   ...params: ParamsDistribute
 ];
-export type ExtenderSigleSideO<ParamsCollect extends any[]> = [
-  from: ExtenderSelector,
+export type ExtenderSigleSideO<ParamsCollect extends Param[]> = [
+  from: Selector,
   ...params: ParamsCollect
 ];
 
 export class ExtenderSingleSidePort<
-  ParamsDistribute extends any[],
-  ParamsCollect extends any[]
+  ParamsDistribute extends Param[],
+  ParamsCollect extends Param[]
 > extends Port<
   ExtenderSigleSideI<ParamsDistribute>,
   ExtenderSigleSideO<ParamsCollect>
@@ -23,24 +22,24 @@ export class ExtenderSingleSidePort<
     this.extenderInstance = extenderInstance;
   }
   extenderInstance: Extender<ParamsDistribute, ParamsCollect>;
-  protected _recv(to: ExtenderSelector, ...params: ParamsDistribute): boolean {
+  protected _recv(to: Selector, ...params: ParamsDistribute): boolean {
     return this.extenderInstance.extend(to, ...params);
   }
 }
 
 export class ExtenderMultiSidePort<
-  ParamsDistribute extends any[],
-  ParamsCollect extends any[]
+  ParamsDistribute extends Param[],
+  ParamsCollect extends Param[]
 > extends Port<ParamsCollect, ParamsDistribute> {
   constructor(
-    selector: ExtenderSelector,
+    selector: Selector,
     extenderInstance: Extender<ParamsDistribute, ParamsCollect>
   ) {
     super();
     this.selector = selector;
     this.extenderInstance = extenderInstance;
   }
-  selector: ExtenderSelector;
+  selector: Selector;
   extenderInstance: Extender<ParamsDistribute, ParamsCollect>;
   protected _recv(...params: ParamsCollect): boolean {
     return this.extenderInstance.collect(this.selector, ...params);
@@ -48,8 +47,8 @@ export class ExtenderMultiSidePort<
 }
 
 export class Extender<
-  ParamsDistribute extends any[],
-  ParamsCollect extends any[]
+  ParamsDistribute extends Param[],
+  ParamsCollect extends Param[]
 > {
   constructor(
     portsToConnect?: [
@@ -69,20 +68,19 @@ export class Extender<
   singleSidePort = new ExtenderSingleSidePort<ParamsDistribute, ParamsCollect>(
     this
   );
-  multiSidePorts: Record<
-    ExtenderSelector,
+  multiSidePorts = new SelectorMap<
     ExtenderMultiSidePort<ParamsDistribute, ParamsCollect>
-  > = {};
+  >();
 
   select(
-    selector: ExtenderSelector
-  ): ExtenderMultiSidePort<ParamsDistribute, ParamsCollect> {
-    return this.multiSidePorts[selector]; // TODO!
+    selector: Selector
+  ): ExtenderMultiSidePort<ParamsDistribute, ParamsCollect> | undefined {
+    return this.multiSidePorts.get(selector);
   }
-  extend(to: ExtenderSelector, ...params: ParamsDistribute): boolean {
-    return this.select(to).send(...params);
+  extend(to: Selector, ...params: ParamsDistribute): boolean {
+    return this.select(to)?.send(...params) || false;
   }
-  collect(from: ExtenderSelector, ...params: ParamsCollect) {
+  collect(from: Selector, ...params: ParamsCollect) {
     return this.singleSidePort.send(from, ...params);
   }
 
@@ -90,20 +88,25 @@ export class Extender<
     Port.connect(this.singleSidePort, to);
   }
   connectMultiSideSide(
-    selector: ExtenderSelector,
-    to: PortToConnect<typeof this.multiSidePorts[symbol]>
+    selector: Selector,
+    to: PortToConnect<ExtenderMultiSidePort<ParamsDistribute, ParamsCollect>>
   ) {
-    Port.connect(this.select(selector), to);
+    const port = this.select(selector);
+    if (!port) return false;
+    Port.connect(port, to);
   }
   addMultiSide(
-    connectTo: PortToConnect<typeof this.multiSidePorts[symbol]>
-  ): ExtenderSelector {
-    const selector = Symbol();
-    this.multiSidePorts[selector] = new ExtenderMultiSidePort<
-      ParamsDistribute,
-      ParamsCollect
-    >(selector, this);
-    Port.connect(this.multiSidePorts[selector], connectTo);
+    connectTo: PortToConnect<
+      ExtenderMultiSidePort<ParamsDistribute, ParamsCollect>
+    >
+  ): Selector {
+    const selector = Selector();
+    const port = new ExtenderMultiSidePort<ParamsDistribute, ParamsCollect>(
+      selector,
+      this
+    );
+    this.multiSidePorts.set(selector, port);
+    Port.connect(port, connectTo);
     return selector;
   }
 }

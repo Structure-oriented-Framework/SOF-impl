@@ -1,6 +1,10 @@
-export type Receiver<Params extends any[]> = (...params: Params) => boolean;
+import { Serializable } from "./serializableType.js";
 
-export abstract class Port<ParamsI extends any[], ParamsO extends any[]> {
+export type Param = Serializable;
+
+export type Receiver<Params extends Param[]> = (...params: Params) => boolean;
+
+export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
   protected receiver: Receiver<ParamsO> | null = null;
 
   setReceiver(receiver: Receiver<ParamsO>): void {
@@ -14,7 +18,7 @@ export abstract class Port<ParamsI extends any[], ParamsO extends any[]> {
 
   protected abstract _recv(...params: ParamsI): boolean;
 
-  static connect<ParamsA2B extends any[], ParamsB2A extends any[]>(
+  static connect<ParamsA2B extends Param[], ParamsB2A extends Param[]>(
     portA: Port<ParamsB2A, ParamsA2B>,
     portB: Port<ParamsA2B, ParamsB2A>
   ) {

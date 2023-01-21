@@ -1,8 +1,8 @@
-import { Port, PortToConnect } from "./port.js";
+import { Param, Port, PortToConnect } from "./port.js";
 
 export class TunnelPort<
-  ParamsI extends any[],
-  ParamsO extends any[]
+  ParamsI extends Param[],
+  ParamsO extends Param[]
 > extends Port<ParamsI, ParamsO> {
   protected otherPort: TunnelPort<ParamsO, ParamsI> | null = null;
   setOtherPort(otherPort: TunnelPort<ParamsO, ParamsI>) {
@@ -14,7 +14,7 @@ export class TunnelPort<
   }
 }
 
-export class Tunnel<ParamsA2B extends any[], ParamsB2A extends any[]> {
+export class Tunnel<ParamsA2B extends Param[], ParamsB2A extends Param[]> {
   constructor(
     portsToConnect?: [
       toA: Port<ParamsB2A, ParamsA2B>,
