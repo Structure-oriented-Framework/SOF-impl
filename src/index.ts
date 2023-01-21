@@ -2,38 +2,63 @@ import { LogPort } from "./logPort.js";
 import { Selector } from "./selector.js";
 import { LogTunnel } from "./logTunnel.js";
 import { Tunnel } from "./tunnel.js";
-import { Extender, ExtenderSelector } from "./extender.js";
+import { Extender, ExtenderSelector, ExtenderSigleSideI } from "./extender.js";
 import { Param } from "./port.js";
 
 console.log("----TEST Extender----");
 
-type D1 = { a: number };
-type D2 = { b: number };
-type D3 = { c: number };
-type SS = "1" | "2";
+/*
+"A1" <DI1<>DO1> {Sel1}+
+                      +[M]--Extender--[S] <<>> [A]--Tunnel--[B] <[Sel,DI1]<>[Sel,DO1]> "B"
+"A2" <DI2<>DO2> {Sel2}+
+*/
+
+type DI1 = { di1: number };
+type DO1 = { do1: number };
+type DI2 = { di2: number };
+type DO2 = { do2: number };
+
+type Sels = "1" | "2";
+
+const pA1 = new LogPort<[data: DI1], [data: DO1]>("A1"),
+  pA2 = new LogPort<[data: DI2], [data: DO2]>("A2"),
+  pB = new LogPort<
+    [from: "1", data: DO1] | [from: "2", data: DO2],
+    [to: "1", data: DI1] | [to: "2", data: DI2]
+  >("B");
 
 const tunnel = new LogTunnel<
-  [from: SS, data: D1],
-  [to: "1", data: D2] | [to: "2", data: D3]
->("single side tunnel");
-tunnel.connectB(new LogPort("B"));
-const extender = new Extender<
-  SS,
+  [from: "1", data: DO1] | [from: "2", data: DO2],
+  [to: "1", data: DI1] | [to: "2", data: DI2]
+>("tunnel");
+tunnel.connectB(pB);
+
+const extender = Extender.connect<
+  Sels,
   {
-    "1": [data: D2];
-    "2": [data: D3];
+    "1": [data: DI1];
+    "2": [data: DI2];
   },
   {
-    "1": [data: D1];
-    "2": [data: D1];
-  }
->([
+    "1": [data: DO1];
+    "2": [data: DO2];
+  },
+  typeof Extender,
+  []
+>(
   tunnel.portA,
   {
-    "1": new LogPort<[data: D1], [data: D2]>("B1"),
-    "2": new LogPort<[data: D1], [data: D3]>("B2"),
+    "1": pA1,
+    "2": pA2,
   },
-]);
+  Extender
+);
+
+pA1.send({ do1: 1 });
+console.log("---");
+pA2.send({ do2: 2 });
+console.log("---");
+pB.send("1", { di1: 3 });
 
 /*
 console.log("----TEST Connection----");
