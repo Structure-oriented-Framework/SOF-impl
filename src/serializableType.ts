@@ -6,6 +6,7 @@ import { Selector } from "./selector.js";
  */
 export type SerializableSimpleValue =
   | number
+  | bigint
   | string
   | boolean
   | undefined
