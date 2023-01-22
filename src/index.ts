@@ -34,8 +34,6 @@ MethodCall.connect(callee, caller);
   console.log('"a"+"b"=' + (await caller.call("cat", "a", "b")));
 })();
 
-setTimeout(() => {}, 1000);
-
 /*
 console.log("----TEST Extender----");
 
