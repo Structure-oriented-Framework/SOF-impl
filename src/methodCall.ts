@@ -122,6 +122,12 @@ export class MethodCallee<
   }
 
   readonly ctrlPort = new MethodCalleeCtrlPort<Sels, Methods>(this);
+  public get extenderPort(): MethodCalleeCallingExtenderOutsidePort<
+    Sels,
+    Methods
+  > {
+    return this.callingExtender.toOutsidePort;
+  }
 
   protected methods: MethodFunctions<Sels, Methods>;
   protected callingExtender = new MethodCalleeCallingPortExtender<
@@ -146,6 +152,12 @@ export class MethodCaller<
   Methods extends MethodMethodsData<Sels>
 > {
   readonly ctrlPort = new MethodCallerCtrlPort<Sels, Methods>();
+  public get extenderPort(): MethodCallerCallingExtenderOutsidePort<
+    Sels,
+    Methods
+  > {
+    return this.callingExtender.toOutsidePort;
+  }
 
   private readonly callingExtender = new MethodCallerCallingPortExtender<
     Sels,
@@ -158,10 +170,9 @@ export class MethodCaller<
     sel: Sel
   ): MethodCallerCallingPort<Sel, Sels, Methods> {
     const newPort = new MethodCallerCallingPort<Sel, Sels, Methods>(this);
-    Port.connect(
-      this.callingExtender.createInside<Sel>(this.crtSerialNo++),
-      newPort
-    );
+    const serialNo = this.crtSerialNo++;
+    Port.connect(this.callingExtender.createInside<Sel>(serialNo), newPort);
+    this.ctrlPort.send(sel, serialNo);
     return newPort;
   }
 
@@ -244,13 +255,13 @@ export class MethodCalleeCallingExtenderInsidePort<
     extender: MethodCalleeCallingPortExtender<Sels, Methods>
   ) {
     super();
-    this.sendSerialNo = serialNo;
+    this.serialNo = serialNo;
     this.extender = extender;
   }
-  sendSerialNo: MethodCallingSerialNo;
+  serialNo: MethodCallingSerialNo;
   extender: MethodCalleeCallingPortExtender<Sels, Methods>;
   protected _recv(ret: Methods[Sel][1]): boolean {
-    return this.extender.forwardOutside(this.sendSerialNo, ret);
+    return this.extender.forwardOutside(this.serialNo, ret);
   }
 }
 
@@ -267,13 +278,13 @@ export class MethodCallerCallingExtenderInsidePort<
     extender: MethodCallerCallingPortExtender<Sels, Methods>
   ) {
     super();
-    this.sendSerialNo = serialNo;
+    this.serialNo = serialNo;
     this.extender = extender;
   }
-  sendSerialNo: MethodCallingSerialNo;
+  serialNo: MethodCallingSerialNo;
   extender: MethodCallerCallingPortExtender<Sels, Methods>;
   protected _recv(ret: Methods[Sel][1]): boolean {
-    return this.extender.forwardOutside(this.sendSerialNo, ret);
+    return this.extender.forwardOutside(this.serialNo, ret);
   }
 }
 
@@ -281,9 +292,11 @@ export class MethodCalleeCallingPortExtender<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
 > {
-  toOutside = new MethodCalleeCallingExtenderOutsidePort<Sels, Methods>(this);
+  toOutsidePort = new MethodCalleeCallingExtenderOutsidePort<Sels, Methods>(
+    this
+  );
 
-  toInside: Record<
+  toInsidePort: Record<
     MethodCallingSerialNo,
     {
       [Sel in Sels]: MethodCalleeCallingExtenderInsidePort<Sel, Sels, Methods>;
@@ -298,7 +311,7 @@ export class MethodCalleeCallingPortExtender<
       Sels,
       Methods
     >(serialNo, this);
-    this.toInside[serialNo] = newPort as any;
+    this.toInsidePort[serialNo] = newPort as any;
     return newPort;
   }
 
@@ -306,7 +319,7 @@ export class MethodCalleeCallingPortExtender<
     serialNo: MethodCallingSerialNo,
     args: Methods[Sels][0]
   ): boolean {
-    let port = this.toInside[serialNo];
+    let port = this.toInsidePort[serialNo];
     if (!port) return false;
     return port.send(args);
   }
@@ -315,7 +328,7 @@ export class MethodCalleeCallingPortExtender<
     serialNo: MethodCallingSerialNo,
     ret: Methods[Sels][1]
   ): boolean {
-    return this.toOutside.send(serialNo, ret);
+    return this.toOutsidePort.send(serialNo, ret);
   }
 }
 
@@ -323,9 +336,11 @@ export class MethodCallerCallingPortExtender<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
 > {
-  toOutside = new MethodCallerCallingExtenderOutsidePort<Sels, Methods>(this);
+  toOutsidePort = new MethodCallerCallingExtenderOutsidePort<Sels, Methods>(
+    this
+  );
 
-  toInside: Record<
+  toInsidePort: Record<
     MethodCallingSerialNo,
     {
       [Sel in Sels]: MethodCallerCallingExtenderInsidePort<Sel, Sels, Methods>;
@@ -340,7 +355,7 @@ export class MethodCallerCallingPortExtender<
       Sels,
       Methods
     >(serialNo, this);
-    this.toInside[serialNo] = newPort as any;
+    this.toInsidePort[serialNo] = newPort as any;
     return newPort;
   }
 
@@ -348,7 +363,7 @@ export class MethodCallerCallingPortExtender<
     serialNo: MethodCallingSerialNo,
     args: Methods[Sels][0]
   ): boolean {
-    let port = this.toInside[serialNo];
+    let port = this.toInsidePort[serialNo];
     if (!port) return false;
     return port.send(args);
   }
@@ -357,7 +372,22 @@ export class MethodCallerCallingPortExtender<
     serialNo: MethodCallingSerialNo,
     ret: Methods[Sels][1]
   ): boolean {
-    return this.toOutside.send(serialNo, ret);
+    return this.toOutsidePort.send(serialNo, ret);
+  }
+}
+
+export class MethodCall {
+  static connect<
+    Sels extends MethodSelector,
+    Methods extends MethodMethodsData<Sels>
+  >(
+    callee: MethodCallee<Sels, Methods>,
+    caller: MethodCaller<Sels, Methods>
+  ): boolean {
+    return (
+      Port.connect(callee.ctrlPort, caller.ctrlPort) &&
+      Port.connect(callee.extenderPort, caller.extenderPort)
+    );
   }
 }
 

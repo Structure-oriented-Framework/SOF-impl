@@ -3,15 +3,45 @@ import { Selector } from "./selector.js";
 import { LogTunnel } from "./logTunnel.js";
 import { Tunnel } from "./tunnel.js";
 import { Extender, ExtenderSelector, ExtenderSigleSideI } from "./extender.js";
-import { Param } from "./port.js";
+import { Param, Port } from "./port.js";
+import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 
-console.log("----TEST Extender----");
+console.log("----TEST MethodCall----");
+
+const methods = {
+  add: (a: number, b: number) => {
+    console.log("fn add called");
+    return a + b;
+  },
+  cat: (a: string, b: string) => {
+    console.log("fn cat called");
+    return a + " " + b;
+  },
+};
+type Sels = "add" | "cat";
+type Methods = {
+  add: [[a: number, b: number], number];
+  cat: [[a: string, b: string], string];
+};
+
+const callee = new MethodCallee<Sels, Methods>(methods);
+const caller = new MethodCaller<Sels, Methods>();
+
+MethodCall.connect(callee, caller);
+
+(async () => {
+  console.log("1+2=" + (await caller.call("add", 1, 2)));
+  console.log('"a"+"b"=' + (await caller.call("cat", "a", "b")));
+})();
+
+setTimeout(() => {}, 1000);
 
 /*
-"A1" <DI1<>DO1> {Sel1}+
-                      +[M]--Extender--[S] <<>> [A]--Tunnel--[B] <[Sel,DI1]<>[Sel,DO1]> "B"
-"A2" <DI2<>DO2> {Sel2}+
-*/
+console.log("----TEST Extender----");
+
+//"A1" <DI1<>DO1> {Sel1}+
+//                      +[M]--Extender--[S] <<>> [A]--Tunnel--[B] <[Sel,DI1]<>[Sel,DO1]> "B"
+//"A2" <DI2<>DO2> {Sel2}+
 
 type DI1 = { di1: number };
 type DO1 = { do1: number };
@@ -59,7 +89,7 @@ console.log("---");
 pA2.send({ do2: 2 });
 console.log("---");
 pB.send("1", { di1: 3 });
-
+*/
 /*
 console.log("----TEST Connection----");
 
