@@ -22,3 +22,11 @@ export type Serializable =
   | SerializableSimpleValue
   | Array<Serializable>
   | SerializableObject;
+
+export function safeJSONStringify(value: Serializable): string {
+  return JSON.stringify(value);
+}
+
+export function safeJSONParse(value: string): Serializable {
+  return JSON.parse(value);
+}
