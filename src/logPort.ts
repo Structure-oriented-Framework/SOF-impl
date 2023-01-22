@@ -9,7 +9,7 @@ export class LogPort<
     this.name = name;
   }
   name;
-  _recv(...params: ParamsI) {
+  protected _recv(...params: ParamsI) {
     console.log(
       "LogPort [" + this.name + "]: Receive",
       params.length < 2 ? params[0] : params

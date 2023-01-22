@@ -78,7 +78,7 @@ export class MethodCalleeCallingPort<
     this.method = method;
   }
   method: MethodFunctionType<Methods[Sel]>;
-  _recv(args: Methods[Sel][1]) {
+  protected _recv(args: Methods[Sel][1]) {
     return this.send(this.method(...args));
   }
 }

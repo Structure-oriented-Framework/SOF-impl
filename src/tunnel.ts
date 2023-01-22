@@ -9,7 +9,7 @@ export class TunnelPort<
   setListender(listener: TunnelListener<ParamsI>) {
     this.listener = listener;
   }
-  _recv(...params: ParamsI): boolean {
+  protected _recv(...params: ParamsI): boolean {
     if (!this.listener) return false;
     return this.listener(params);
   }

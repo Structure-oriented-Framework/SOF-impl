@@ -6,6 +6,9 @@ import { Extender, ExtenderSelector, ExtenderSigleSideI } from "./extender.js";
 import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 
+
+
+/*
 console.log("----TEST MethodCall----");
 
 const methods = {
@@ -33,7 +36,7 @@ MethodCall.connect(callee, caller);
   console.log("1+2=" + (await caller.call("add", 1, 2)));
   console.log('"a"+"b"=' + (await caller.call("cat", "a", "b")));
 })();
-
+*/
 /*
 console.log("----TEST Extender----");
 

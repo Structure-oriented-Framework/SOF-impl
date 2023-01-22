@@ -13,7 +13,7 @@ export class DiodeOutPort<Params extends Param[]> extends Port<[], Params> {
   send(...params: Params): boolean {
     return super.send(...params);
   }
-  _recv(): boolean {
+  protected _recv(): boolean {
     return false;
   }
 }
