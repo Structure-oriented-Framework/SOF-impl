@@ -11,6 +11,6 @@ export class WebTunnelSidePort<
     }
     socket = new Socket();
     protected _recv(...params: ParamsI): boolean {
-        
+        return false;
     }
 }
