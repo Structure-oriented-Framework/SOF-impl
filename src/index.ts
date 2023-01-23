@@ -5,9 +5,37 @@ import { Tunnel } from "./tunnel.js";
 import { Extender, ExtenderSelector, ExtenderSigleSideI } from "./extender.js";
 import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
+import { PropsExposer, PropsShadow } from "./props.js";
 
+console.log("----TEST MethodCall----");
 
+const prop = {
+  a: 1,
+  b: 2,
+};
 
+const exposer = new PropsExposer(),
+  shadow = new PropsShadow();
+
+const log = (name: string) => {
+  console.log(
+    `[${name}]:`,
+    "exposer.props=",
+    exposer.props,
+    "shadow.props=",
+    shadow.props
+  );
+};
+
+log("0");
+Port.connect(exposer.port, shadow.port);
+log("1");
+
+exposer.init(prop);
+log("2");
+
+exposer.patch("a", 3);
+log("3");
 /*
 console.log("----TEST MethodCall----");
 

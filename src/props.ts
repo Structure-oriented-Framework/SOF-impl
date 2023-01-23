@@ -77,24 +77,20 @@ export class PropsShadowPort<
   PropsShadow2ExposerParams<Sels, Props, PropsShadow2ExposerActionType>
 > {}
 
-
 export class PropsExtenderShadowBase<
-Sels extends PropsSelector,
-Props extends PropsType<Sels>
->{
+  Sels extends PropsSelector,
+  Props extends PropsType<Sels>
+> {
   constructor() {
     this.propsVersion = this.updateVersion(); // To avoid TS error
   }
 
   protected _props: Props | null = null;
 
-  get props(): Props {
-    if(!this._props) {
-      throw new Error("Props is null, please init PropsShadow first!");
-    }
+  get props(): Props | null {
     return this._props;
   }
-  
+
   protected propsVersion: PropsVersion;
 
   protected updateVersion(): PropsVersion {
@@ -119,7 +115,7 @@ export class PropsExposer<
     this._props[sel] = newVal;
     const newVer = this.updateVersion();
     // See https://github.com/microsoft/TypeScript/issues/52354, that's why I use `any` next line
-    this.port.send(...(["patch", oldVer, newVer, sel, newVal] as any)); 
+    this.port.send(...(["patch", oldVer, newVer, sel, newVal] as any));
   }
 
   protected recv<ActionType extends PropsShadow2ExposerActionType>(
@@ -145,9 +141,8 @@ export class PropsShadow<
   Sels extends PropsSelector,
   Props extends PropsType<Sels>
 > extends PropsExtenderShadowBase<Sels, Props> {
-
   // The using of `any` next line may because of https://github.com/microsoft/TypeScript/issues/52354
-  port = new PropsShadowPort<Sels, Props>(this.recv.bind(this) as any); 
+  port = new PropsShadowPort<Sels, Props>(this.recv.bind(this) as any);
 
   patch<Sel extends Sels>(sel: Sel, newVal: Props[Sel]) {
     const oldVer = this.propsVersion;
@@ -162,13 +157,17 @@ export class PropsShadow<
     ...args: PropsExposer2ShadowActionArgs<Sels, Props>[ActionType]
   ): boolean {
     switch (actionType) {
-      case "init":{
-        const [propsVal, propsVersion] = args as PropsExposer2ShadowActionArgs<Sels, Props>["init"];
+      case "init": {
+        const [propsVal, propsVersion] = args as PropsExposer2ShadowActionArgs<
+          Sels,
+          Props
+        >["init"];
         this._props = propsVal;
         this.propsVersion = propsVersion;
       }
       case "patch": {
-        const [_oldVer, newVer, sel, newVal] = args as PropsExposer2ShadowActionArgs<Sels, Props>["patch"];
+        const [_oldVer, newVer, sel, newVal] =
+          args as PropsExposer2ShadowActionArgs<Sels, Props>["patch"];
         // No matter what `oldVer` is, the Shadow props must follow the Exposer,
         //  so `_oldVer` is not used here.
         // Maybe we can report it to Exposer when `oldVer`!==`this.propsVersion` if necessary.
