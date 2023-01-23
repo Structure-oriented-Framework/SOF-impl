@@ -20,17 +20,15 @@ export type MethodFunctions<
   [Sel in keyof Method]: MethodFunctionType<Method[Sel]>;
 };
 
-export type MethodCalleeCtrlParams<
+export type MethodCallCtrlParams<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
-> = {
-  [Sel in Sels]: [sel: Sel, serialNo: MethodCallingSerialNo];
-}[Sels];
+> = [sel: Sels, serialNo: MethodCallingSerialNo];
 
 export class MethodCalleeCtrlPort<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
-> extends DiodeInPort<MethodCalleeCtrlParams<Sels, Methods>> {
+> extends DiodeInPort<MethodCallCtrlParams<Sels, Methods>> {
   constructor(callee: MethodCallee<Sels, Methods>) {
     super();
     this.callee = callee;
@@ -47,7 +45,7 @@ export class MethodCalleeCtrlPort<
 export class MethodCallerCtrlPort<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
-> extends DiodeOutPort<MethodCalleeCtrlParams<Sels, Methods>> {}
+> extends DiodeOutPort<MethodCallCtrlParams<Sels, Methods>> {}
 
 export type MethodCallingParams<
   Sel extends Sels,
@@ -288,6 +286,14 @@ export class MethodCallerCallingExtenderInsidePort<
   }
 }
 
+type MethodCalleeCallingExtenderInsidePortHelper<
+  Sels extends MethodSelector,
+  Methods extends MethodMethodsData<Sels>,
+  SelsCopy extends Sels = Sels
+> = SelsCopy extends unknown
+  ? MethodCalleeCallingExtenderInsidePort<SelsCopy, Sels, Methods>
+  : never;
+
 export class MethodCalleeCallingPortExtender<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
@@ -298,9 +304,7 @@ export class MethodCalleeCallingPortExtender<
 
   toInsidePort: Record<
     MethodCallingSerialNo,
-    {
-      [Sel in Sels]: MethodCalleeCallingExtenderInsidePort<Sel, Sels, Methods>;
-    }[Sels]
+    MethodCalleeCallingExtenderInsidePortHelper<Sels, Methods>
   > = {};
 
   createInside<Sel extends Sels>(
@@ -342,9 +346,9 @@ export class MethodCallerCallingPortExtender<
 
   toInsidePort: Record<
     MethodCallingSerialNo,
-    {
-      [Sel in Sels]: MethodCallerCallingExtenderInsidePort<Sel, Sels, Methods>;
-    }[Sels]
+    Sels extends unknown
+      ? MethodCallerCallingExtenderInsidePort<Sels, Sels, Methods>
+      : never
   > = {};
 
   createInside<Sel extends Sels>(
