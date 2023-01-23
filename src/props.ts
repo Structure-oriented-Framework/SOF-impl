@@ -82,21 +82,24 @@ export class PropsExtenderShadowBase<
   Props extends PropsType<Sels>
 > {
   constructor() {
-    this.propsVersion = this.updateVersion(); // To avoid TS error
+    this._propsVersion = this.updateVersion(); // To avoid TS error
   }
 
   protected _props: Props | null = null;
-
   get props(): Props | null {
     return this._props;
   }
 
-  protected propsVersion: PropsVersion;
+  protected _propsVersion: PropsVersion;
+  get propsVersion(): PropsVersion {
+    return this._propsVersion;
+  }
 
   protected updateVersion(): PropsVersion {
-    return (this.propsVersion = serializable2Hash(this._props));
+    return (this._propsVersion = serializable2Hash(this._props));
   }
 }
+
 export class PropsExposer<
   Sels extends PropsSelector,
   Props extends PropsType<Sels>
@@ -105,12 +108,12 @@ export class PropsExposer<
 
   init(props: Props) {
     this._props = props;
-    this.propsVersion = serializable2Hash(this._props);
-    this.port.send("init", this._props, this.propsVersion);
+    this._propsVersion = serializable2Hash(this._props);
+    this.port.send("init", this._props, this._propsVersion);
   }
 
   patch<Sel extends Sels>(sel: Sel, newVal: Props[Sel]) {
-    const oldVer = this.propsVersion;
+    const oldVer = this._propsVersion;
     if (!this._props) throw new Error("Cannot patch null props!");
     this._props[sel] = newVal;
     const newVer = this.updateVersion();
@@ -119,18 +122,27 @@ export class PropsExposer<
   }
 
   protected recv<ActionType extends PropsShadow2ExposerActionType>(
-    actionType: ActionType,
-    ...args: PropsShadow2ExposerActionArgs<Sels, Props>[ActionType]
+    ...[actionType, ...args]: ActionType extends unknown
+      ? [
+          actionType: ActionType,
+          ...args: PropsShadow2ExposerActionArgs<Sels, Props>[ActionType]
+        ]
+      : never
   ): boolean {
     switch (actionType) {
       case "patch": {
-        const [oldVer, newVer, sel, newVal] = args;
-        if (oldVer !== this.propsVersion) {
+        const [oldVer, newVer, sel, newVal] =
+          args as PropsShadow2ExposerActionArgs<Sels, Props>[typeof actionType];
+        if (oldVer !== this._propsVersion) {
           return false;
         }
         if (!this._props) throw new Error("Cannot patch null props!");
         this._props[sel] = newVal;
-        this.propsVersion = newVer;
+        this._propsVersion = newVer;
+        break;
+      }
+      default: {
+        let _: never = actionType;
       }
     }
     return false;
@@ -145,7 +157,7 @@ export class PropsShadow<
   port = new PropsShadowPort<Sels, Props>(this.recv.bind(this) as any);
 
   patch<Sel extends Sels>(sel: Sel, newVal: Props[Sel]) {
-    const oldVer = this.propsVersion;
+    const oldVer = this._propsVersion;
     if (!this._props) throw new Error("Cannot patch null props!");
     this._props[sel] = newVal;
     const newVer = this.updateVersion();
@@ -153,27 +165,36 @@ export class PropsShadow<
   }
 
   protected recv<ActionType extends PropsExposer2ShadowActionType>(
-    actionType: ActionType,
-    ...args: PropsExposer2ShadowActionArgs<Sels, Props>[ActionType]
+    ...[actionType, ...args]: ActionType extends unknown
+      ? [
+          actionType: ActionType,
+          ...args: PropsExposer2ShadowActionArgs<Sels, Props>[ActionType]
+        ]
+      : never
   ): boolean {
     switch (actionType) {
       case "init": {
         const [propsVal, propsVersion] = args as PropsExposer2ShadowActionArgs<
           Sels,
           Props
-        >["init"];
+        >[typeof actionType];
         this._props = propsVal;
-        this.propsVersion = propsVersion;
+        this._propsVersion = propsVersion;
+        break;
       }
       case "patch": {
         const [_oldVer, newVer, sel, newVal] =
-          args as PropsExposer2ShadowActionArgs<Sels, Props>["patch"];
+          args as PropsExposer2ShadowActionArgs<Sels, Props>[typeof actionType];
         // No matter what `oldVer` is, the Shadow props must follow the Exposer,
         //  so `_oldVer` is not used here.
         // Maybe we can report it to Exposer when `oldVer`!==`this.propsVersion` if necessary.
         if (!this._props) throw new Error("Cannot patch null props!");
         this._props[sel] = newVal;
-        this.propsVersion = newVer;
+        this._propsVersion = newVer;
+        break;
+      }
+      default: {
+        let _: never = actionType;
       }
     }
     return false;

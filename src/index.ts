@@ -18,13 +18,11 @@ const exposer = new PropsExposer(),
   shadow = new PropsShadow();
 
 const log = (name: string) => {
-  console.log(
-    `[${name}]:`,
-    "exposer.props=",
-    exposer.props,
-    "shadow.props=",
-    shadow.props
-  );
+  console.log(`[${name}]:`);
+  console.log("\texposer.props =", exposer.props);
+  console.log("\t       .propsVer =", exposer.propsVersion);
+  console.log("\tshadow.props =", shadow.props);
+  console.log("\t      .propsVer =", shadow.propsVersion);
 };
 
 log("0");
