@@ -19,28 +19,32 @@ export class TunnelPort<
 }
 
 export abstract class Tunnel<
-  ParamsA2B extends Param[],
-  ParamsB2A extends Param[]
+  ParamsAIn extends Param[],
+  ParamsAOut extends Param[],
+  ParamsBIn extends Param[] = ParamsAOut,
+  ParamsBOut extends Param[] = ParamsAIn
 > {
   constructor() {
     this.portA.setListender(this.listenerA.bind(this));
     this.portB.setListender(this.listenerB.bind(this));
   }
-  portA: TunnelPort<ParamsA2B, ParamsB2A> = new TunnelPort();
-  portB: TunnelPort<ParamsB2A, ParamsA2B> = new TunnelPort();
+  portA: TunnelPort<ParamsAIn, ParamsAOut> = new TunnelPort();
+  portB: TunnelPort<ParamsBIn, ParamsBOut> = new TunnelPort();
 
-  protected abstract listenerA(params: ParamsA2B): Promise<boolean>;
-  protected abstract listenerB(params: ParamsB2A): Promise<boolean>;
+  //async
+  protected abstract listenerA(params: ParamsAIn): Promise<boolean>;
+  //async
+  protected abstract listenerB(params: ParamsBIn): Promise<boolean>;
 
-  connectA(to: PortToConnect<TunnelPort<ParamsA2B, ParamsB2A>>): boolean {
+  connectA(to: PortToConnect<TunnelPort<ParamsAIn, ParamsAOut>>): boolean {
     return Port.connect(this.portA, to);
   }
-  connectB(to: PortToConnect<TunnelPort<ParamsB2A, ParamsA2B>>): boolean {
+  connectB(to: PortToConnect<TunnelPort<ParamsBIn, ParamsBOut>>): boolean {
     return Port.connect(this.portB, to);
   }
   connectAB(
-    toA: PortToConnect<TunnelPort<ParamsA2B, ParamsB2A>>,
-    toB: PortToConnect<TunnelPort<ParamsB2A, ParamsA2B>>
+    toA: PortToConnect<TunnelPort<ParamsAIn, ParamsAOut>>,
+    toB: PortToConnect<TunnelPort<ParamsBIn, ParamsBOut>>
   ): boolean {
     return this.connectA(toA) && this.connectB(toB);
   }
