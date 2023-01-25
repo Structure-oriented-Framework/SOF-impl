@@ -9,7 +9,7 @@ export type Receiver<Params extends Param[]> = (
 export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
   protected receiver: Receiver<ParamsO> | null = null;
 
-  setReceiver(receiver: Receiver<ParamsO>): boolean {
+  private setReceiver(receiver: Receiver<ParamsO>): boolean {
     this.receiver = receiver;
     return true;
   }
