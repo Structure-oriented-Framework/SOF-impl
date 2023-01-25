@@ -2,12 +2,13 @@ import { LogPort } from "./logPort.js";
 import { Selector } from "./selector.js";
 import { LogTunnel } from "./logTunnel.js";
 import { Tunnel } from "./tunnel.js";
-import { Extender, ExtenderSelector, ExtenderSigleSideI } from "./staticExtender.js";
+import { StaticExtender, StaticExtenderSelector, StaticExtenderSigleSideI } from "./staticExtender.js";
 import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 import { PropsExposer, PropsShadow } from "./props.js";
 
-console.log("----TEST MethodCall----");
+/*
+console.log("----TEST Props----");
 
 const prop = {
   a: 1,
@@ -34,7 +35,8 @@ log("2");
 
 exposer.patch("a", 3);
 log("3");
-/*
+*/
+
 console.log("----TEST MethodCall----");
 
 const methods = {
@@ -62,7 +64,7 @@ MethodCall.connect(callee, caller);
   console.log("1+2=" + (await caller.call("add", 1, 2)));
   console.log('"a"+"b"=' + (await caller.call("cat", "a", "b")));
 })();
-*/
+
 /*
 console.log("----TEST Extender----");
 

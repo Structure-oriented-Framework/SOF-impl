@@ -1,5 +1,6 @@
 import { DiodeInPort, DiodeOutPort } from "./diodePort.js";
 import { Port } from "./port.js";
+import { StaticExtender } from "./staticExtender.js";
 
 export type MethodSelector = string;
 
@@ -111,27 +112,61 @@ export class MethodCallerCallingPort<
   }
 }
 
+export type MethodCallStaticExtenderSels = "ctrl" | "calling";
+
+export type MethodCallStaticExtenderCaller2Callee<
+  Sels extends MethodSelector,
+  Methods extends MethodMethodsData<Sels>
+> = {
+  ctrl: MethodCallCtrlParams<Sels, Methods>;
+  calling: MethodCallingParamsCollected<Sels, Methods>;
+};
+
+export type MethodCallStaticExtenderCallee2Caller<
+  Sels extends MethodSelector,
+  Methods extends MethodMethodsData<Sels>
+> = {
+  ctrl: never;
+  calling: MethodReturningParamsCollected<Sels, Methods>;
+};
+
 export class MethodCallee<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
 > {
   constructor(methods: MethodFunctions<Sels, Methods>) {
     this.methods = methods;
+
+    this.staticExtender.connectMultiSideSide("ctrl", this.ctrlPort);
+    this.staticExtender.connectMultiSideSide(
+      "calling",
+      this.callingExtenderPort
+    );
   }
 
-  readonly ctrlPort = new MethodCalleeCtrlPort<Sels, Methods>(this);
-  public get extenderPort(): MethodCalleeCallingExtenderOutsidePort<
+  protected methods: MethodFunctions<Sels, Methods>;
+
+  protected readonly ctrlPort = new MethodCalleeCtrlPort<Sels, Methods>(this);
+  protected callingExtender = new MethodCalleeCallingPortExtender<
+    Sels,
+    Methods
+  >();
+  protected get callingExtenderPort(): MethodCalleeCallingExtenderOutsidePort<
     Sels,
     Methods
   > {
     return this.callingExtender.toOutsidePort;
   }
 
-  protected methods: MethodFunctions<Sels, Methods>;
-  protected callingExtender = new MethodCalleeCallingPortExtender<
-    Sels,
-    Methods
+  protected readonly staticExtender = new StaticExtender<
+    MethodCallStaticExtenderSels,
+    MethodCallStaticExtenderCaller2Callee<Sels, Methods>,
+    MethodCallStaticExtenderCallee2Caller<Sels, Methods>
   >();
+
+  public get port() {
+    return this.staticExtender.singleSidePort;
+  }
 
   createCallingPortAndConnect<Sel extends Sels>(
     sel: Sel,
@@ -149,20 +184,37 @@ export class MethodCaller<
   Sels extends MethodSelector,
   Methods extends MethodMethodsData<Sels>
 > {
-  readonly ctrlPort = new MethodCallerCtrlPort<Sels, Methods>();
-  public get extenderPort(): MethodCallerCallingExtenderOutsidePort<
+  constructor() {
+    this.staticExtender.connectMultiSideSide("ctrl", this.ctrlPort);
+    this.staticExtender.connectMultiSideSide(
+      "calling",
+      this.callingExtenderPort
+    );
+  }
+
+  protected crtSerialNo = 0;
+
+  protected readonly ctrlPort = new MethodCallerCtrlPort<Sels, Methods>();
+  protected readonly callingExtender = new MethodCallerCallingPortExtender<
+    Sels,
+    Methods
+  >();
+  protected get callingExtenderPort(): MethodCallerCallingExtenderOutsidePort<
     Sels,
     Methods
   > {
     return this.callingExtender.toOutsidePort;
   }
 
-  private readonly callingExtender = new MethodCallerCallingPortExtender<
-    Sels,
-    Methods
+  protected readonly staticExtender = new StaticExtender<
+    MethodCallStaticExtenderSels,
+    MethodCallStaticExtenderCallee2Caller<Sels, Methods>,
+    MethodCallStaticExtenderCaller2Callee<Sels, Methods>
   >();
 
-  protected crtSerialNo = 0;
+  public get port() {
+    return this.staticExtender.singleSidePort;
+  }
 
   createCallingConnection<Sel extends Sels>(
     sel: Sel
@@ -388,10 +440,7 @@ export class MethodCall {
     callee: MethodCallee<Sels, Methods>,
     caller: MethodCaller<Sels, Methods>
   ): boolean {
-    return (
-      Port.connect(callee.ctrlPort, caller.ctrlPort) &&
-      Port.connect(callee.extenderPort, caller.extenderPort)
-    );
+    return Port.connect(callee.port, caller.port);
   }
 }
 
