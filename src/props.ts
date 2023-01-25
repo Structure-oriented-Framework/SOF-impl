@@ -106,29 +106,34 @@ export class PropsExposer<
 > extends PropsExtenderShadowBase<Sels, Props> {
   port = new PropsExposerPort<Sels, Props>(this.recv.bind(this));
 
-  init(props: Props) {
+  async init(props: Props): Promise<boolean> {
     this._props = props;
     this._propsVersion = serializable2Hash(this._props);
-    this.port.send("init", this._props, this._propsVersion);
+    return await this.port.send("init", this._props, this._propsVersion);
   }
 
-  patch<Sel extends Sels>(sel: Sel, newVal: Props[Sel]) {
+  async patch<Sel extends Sels>(
+    sel: Sel,
+    newVal: Props[Sel]
+  ): Promise<boolean> {
     const oldVer = this._propsVersion;
     if (!this._props) throw new Error("Cannot patch null props!");
     this._props[sel] = newVal;
     const newVer = this.updateVersion();
     // See https://github.com/microsoft/TypeScript/issues/52354, that's why I use `any` next line
-    this.port.send(...(["patch", oldVer, newVer, sel, newVal] as any));
+    return await this.port.send(
+      ...(["patch", oldVer, newVer, sel, newVal] as any)
+    );
   }
 
-  protected recv<ActionType extends PropsShadow2ExposerActionType>(
+  protected async recv<ActionType extends PropsShadow2ExposerActionType>(
     ...[actionType, ...args]: ActionType extends unknown
       ? [
           actionType: ActionType,
           ...args: PropsShadow2ExposerActionArgs<Sels, Props>[ActionType]
         ]
       : never
-  ): boolean {
+  ): Promise<boolean> {
     switch (actionType) {
       case "patch": {
         const [oldVer, newVer, sel, newVal] =
@@ -156,22 +161,25 @@ export class PropsShadow<
   // The using of `any` next line may because of https://github.com/microsoft/TypeScript/issues/52354
   port = new PropsShadowPort<Sels, Props>(this.recv.bind(this) as any);
 
-  patch<Sel extends Sels>(sel: Sel, newVal: Props[Sel]) {
+  async patch<Sel extends Sels>(
+    sel: Sel,
+    newVal: Props[Sel]
+  ): Promise<boolean> {
     const oldVer = this._propsVersion;
     if (!this._props) throw new Error("Cannot patch null props!");
     this._props[sel] = newVal;
     const newVer = this.updateVersion();
-    this.port.send("patch", oldVer, newVer, sel, newVal);
+    return await this.port.send("patch", oldVer, newVer, sel, newVal);
   }
 
-  protected recv<ActionType extends PropsExposer2ShadowActionType>(
+  protected async recv<ActionType extends PropsExposer2ShadowActionType>(
     ...[actionType, ...args]: ActionType extends unknown
       ? [
           actionType: ActionType,
           ...args: PropsExposer2ShadowActionArgs<Sels, Props>[ActionType]
         ]
       : never
-  ): boolean {
+  ): Promise<boolean> {
     switch (actionType) {
       case "init": {
         const [propsVal, propsVersion] = args as PropsExposer2ShadowActionArgs<

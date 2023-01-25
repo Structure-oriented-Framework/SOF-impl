@@ -2,7 +2,9 @@ import { Serializable } from "./serializableType.js";
 
 export type Param = Serializable;
 
-export type Receiver<Params extends Param[]> = (...params: Params) => boolean;
+export type Receiver<Params extends Param[]> = (
+  ...params: Params
+) => Promise<boolean>;
 
 export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
   protected receiver: Receiver<ParamsO> | null = null;
@@ -12,12 +14,13 @@ export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
     return true;
   }
 
-  send(...params: ParamsO): boolean {
+  async send(...params: ParamsO): Promise<boolean> {
     if (!this.receiver) return false;
-    return this.receiver(...params);
+    return await this.receiver(...params);
   }
 
-  protected abstract _recv(...params: ParamsI): boolean;
+  // async
+  protected abstract _recv(...params: ParamsI): Promise<boolean>;
 
   static connect<ParamsA2B extends Param[], ParamsB2A extends Param[]>(
     portA: Port<ParamsB2A, ParamsA2B>,

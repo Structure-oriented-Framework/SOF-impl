@@ -18,15 +18,12 @@ export type StaticExtenderSigleSideO<
   [K in From]: [from: K, ...data: ParamsCollect[K]];
 }[From];
 
-export type StaticExtenderParamsDistribute<Sels extends StaticExtenderSelector> = Record<
-  Sels,
-  Param[]
->;
+export type StaticExtenderParamsDistribute<
+  Sels extends StaticExtenderSelector
+> = Record<Sels, Param[]>;
 
-export type StaticExtenderParamsCollect<Sels extends StaticExtenderSelector> = Record<
-  Sels,
-  Param[]
->;
+export type StaticExtenderParamsCollect<Sels extends StaticExtenderSelector> =
+  Record<Sels, Param[]>;
 
 export class StaticExtenderSingleSidePort<
   Sels extends StaticExtenderSelector,
@@ -43,9 +40,10 @@ export class StaticExtenderSingleSidePort<
     this.extenderInstance = extenderInstance;
   }
   extenderInstance: StaticExtender<Sels, ParamsDistribute, ParamsCollect>;
-  protected _recv<To extends Sels>(
-    to: To, ...data: ParamsDistribute[To]
-  ): boolean {
+  protected async _recv<To extends Sels>(
+    to: To,
+    ...data: ParamsDistribute[To]
+  ): Promise<boolean> {
     return this.extenderInstance.extend(to, ...data);
   }
 }
@@ -66,8 +64,8 @@ export class StaticExtenderMultiSidePort<
   }
   selector: Sel;
   extenderInstance: StaticExtender<Sels, ParamsDistribute, ParamsCollect>;
-  protected _recv(...data: ParamsCollect[Sel]): boolean {
-    return this.extenderInstance.collect(this.selector, ...data);
+  protected async _recv(...data: ParamsCollect[Sel]): Promise<boolean> {
+    return await this.extenderInstance.collect(this.selector, ...data);
   }
 }
 
@@ -97,14 +95,17 @@ export class StaticExtender<
     | undefined {
     return this.multiSidePorts[selector]; //Important: this may be undefined!
   }
-  extend<To extends Sels>(to: To, ...data: ParamsDistribute[To]): boolean {
-    return this.select(to)?.send(...data) || false;
+  async extend<To extends Sels>(
+    to: To,
+    ...data: ParamsDistribute[To]
+  ): Promise<boolean> {
+    return (await this.select(to)?.send(...data)) || false;
   }
-  collect<From extends Sels>(
+  async collect<From extends Sels>(
     from: From,
     ...data: ParamsCollect[From]
-  ): boolean {
-    return this.singleSidePort.send(from, ...data);
+  ): Promise<boolean> {
+    return await this.singleSidePort.send(from, ...data);
   }
 
   connectSigleSide(to: PortToConnect<typeof this.singleSidePort>) {
@@ -132,11 +133,9 @@ export class StaticExtender<
     Sels extends StaticExtenderSelector,
     ParamsDistribute extends StaticExtenderParamsDistribute<Sels>,
     ParamsCollect extends StaticExtenderParamsCollect<Sels>,
-    StaticExtenderCtor extends new (...args: StaticExtenderCtorParams) => StaticExtender<
-      Sels,
-      ParamsDistribute,
-      ParamsCollect
-    >,
+    StaticExtenderCtor extends new (
+      ...args: StaticExtenderCtorParams
+    ) => StaticExtender<Sels, ParamsDistribute, ParamsCollect>,
     StaticExtenderCtorParams extends any[]
   >(
     toSingleSide: PortToConnect<

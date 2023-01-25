@@ -1,6 +1,9 @@
 import { Param, Port, PortToConnect } from "./port.js";
 
-type TunnelListener<ParamsI extends Param[]> = (params: ParamsI) => boolean;
+type TunnelListener<ParamsI extends Param[]> = (
+  params: ParamsI
+) => Promise<boolean>;
+
 export class TunnelPort<
   ParamsI extends Param[],
   ParamsO extends Param[]
@@ -9,9 +12,9 @@ export class TunnelPort<
   setListender(listener: TunnelListener<ParamsI>) {
     this.listener = listener;
   }
-  protected _recv(...params: ParamsI): boolean {
+  protected async _recv(...params: ParamsI): Promise<boolean> {
     if (!this.listener) return false;
-    return this.listener(params);
+    return await this.listener(params);
   }
 }
 
@@ -26,8 +29,8 @@ export abstract class Tunnel<
   portA: TunnelPort<ParamsA2B, ParamsB2A> = new TunnelPort();
   portB: TunnelPort<ParamsB2A, ParamsA2B> = new TunnelPort();
 
-  protected abstract listenerA(params: ParamsA2B): boolean;
-  protected abstract listenerB(params: ParamsB2A): boolean;
+  protected abstract listenerA(params: ParamsA2B): Promise<boolean>;
+  protected abstract listenerB(params: ParamsB2A): Promise<boolean>;
 
   connectA(to: PortToConnect<TunnelPort<ParamsA2B, ParamsB2A>>): boolean {
     return Port.connect(this.portA, to);

@@ -2,7 +2,11 @@ import { LogPort } from "./logPort.js";
 import { Selector } from "./selector.js";
 import { LogTunnel } from "./logTunnel.js";
 import { Tunnel } from "./tunnel.js";
-import { StaticExtender, StaticExtenderSelector, StaticExtenderSigleSideI } from "./staticExtender.js";
+import {
+  StaticExtender,
+  StaticExtenderSelector,
+  StaticExtenderSigleSideI,
+} from "./staticExtender.js";
 import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 import { PropsExposer, PropsShadow } from "./props.js";

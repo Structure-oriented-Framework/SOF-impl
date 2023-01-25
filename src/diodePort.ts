@@ -1,19 +1,23 @@
 import { Port, Param } from "./port.js";
 
-export abstract class DiodeInPort<Params extends Param[]> extends Port<Params, never> {
-  send(): boolean {
+export abstract class DiodeInPort<Params extends Param[]> extends Port<
+  Params,
+  never
+> {
+  async send(): Promise<boolean> {
     return false;
   }
+
   //The same as super, may should be removed
-  protected abstract _recv(...params: Params): boolean;
+  protected abstract _recv(...params: Params): Promise<boolean>;
 }
 
 export class DiodeOutPort<Params extends Param[]> extends Port<never, Params> {
   //The same as super, may should be removed
-  send(...params: Params): boolean {
-    return super.send(...params);
+  async send(...params: Params): Promise<boolean> {
+    return await super.send(...params);
   }
-  protected _recv(): boolean {
+  protected async _recv(): Promise<boolean> {
     return false;
   }
 }

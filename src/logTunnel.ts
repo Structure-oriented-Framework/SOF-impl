@@ -10,18 +10,18 @@ export class LogTunnel<
     this.name = name;
   }
   name;
-  listenerA(params: ParamsA2B): boolean {
+  async listenerA(params: ParamsA2B): Promise<boolean> {
     console.log(
       "LogTunnel [" + this.name + "]: A2B ",
       params.length < 2 ? params[0] : params
     );
-    return this.portB.send(...params);
+    return await this.portB.send(...params);
   }
-  listenerB(params: ParamsB2A): boolean {
+  async listenerB(params: ParamsB2A): Promise<boolean> {
     console.log(
       "LogTunnel [" + this.name + "]: B2A ",
       params.length < 2 ? params[0] : params
     );
-    return this.portA.send(...params);
+    return await this.portA.send(...params);
   }
 }

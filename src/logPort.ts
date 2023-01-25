@@ -9,18 +9,18 @@ export class LogPort<
     this.name = name;
   }
   name;
-  protected _recv(...params: ParamsI) {
+  protected async _recv(...params: ParamsI) {
     console.log(
       "LogPort [" + this.name + "]: Receive",
       params.length < 2 ? params[0] : params
     );
     return true;
   }
-  send(...params: ParamsO) {
+  async send(...params: ParamsO) {
     console.log(
       "LogPort [" + this.name + "]: Send",
       params.length < 2 ? params[0] : params
     );
-    return super.send(...params);
+    return await super.send(...params);
   }
 }

@@ -35,10 +35,10 @@ export class MethodCalleeCtrlPort<
     this.callee = callee;
   }
   callee: MethodCallee<Sels, Methods>;
-  protected _recv<Sel extends Sels>(
+  protected async _recv<Sel extends Sels>(
     sel: Sel,
     serialNo: MethodCallingSerialNo
-  ): boolean {
+  ): Promise<boolean> {
     return this.callee.createCallingPortAndConnect<Sel>(sel, serialNo);
   }
 }
@@ -77,8 +77,8 @@ export class MethodCalleeCallingPort<
     this.method = method;
   }
   method: MethodFunctionType<Methods[Sel]>;
-  protected _recv(args: Methods[Sel][1]) {
-    return this.send(this.method(...args));
+  protected async _recv(args: Methods[Sel][1]): Promise<boolean> {
+    return await this.send(this.method(...args));
   }
 }
 
@@ -102,7 +102,7 @@ export class MethodCallerCallingPort<
     this.resolver = resolver;
   }
 
-  protected _recv(ret: Methods[Sel][1]): boolean {
+  protected async _recv(ret: Methods[Sel][1]): Promise<boolean> {
     if (!this.resolver) {
       throw new Error("No resolver specified!");
     }
@@ -216,13 +216,13 @@ export class MethodCaller<
     return this.staticExtender.singleSidePort;
   }
 
-  createCallingConnection<Sel extends Sels>(
+  async createCallingConnection<Sel extends Sels>(
     sel: Sel
-  ): MethodCallerCallingPort<Sel, Sels, Methods> {
+  ): Promise<MethodCallerCallingPort<Sel, Sels, Methods>> {
     const newPort = new MethodCallerCallingPort<Sel, Sels, Methods>(this);
     const serialNo = this.crtSerialNo++;
     Port.connect(this.callingExtender.createInside<Sel>(serialNo), newPort);
-    this.ctrlPort.send(sel, serialNo);
+    await this.ctrlPort.send(sel, serialNo);
     return newPort;
   }
 
@@ -231,9 +231,9 @@ export class MethodCaller<
     ...args: Methods[Sel][0]
   ): Promise<Methods[Sel][1]> {
     return new Promise<Methods[Sel][1]>(async (resolve, reject) => {
-      const port = this.createCallingConnection<Sel>(sel);
+      const port = await this.createCallingConnection<Sel>(sel);
       port.setResolver(resolve);
-      port.send(args);
+      await port.send(args);
     });
   }
 
@@ -270,8 +270,11 @@ export class MethodCalleeCallingExtenderOutsidePort<
     this.extender = extender;
   }
   extender: MethodCalleeCallingPortExtender<Sels, Methods>;
-  protected _recv(serialNo: number, args: Methods[Sels][0]): boolean {
-    return this.extender.forwardInside(serialNo, args);
+  protected async _recv(
+    serialNo: number,
+    args: Methods[Sels][0]
+  ): Promise<boolean> {
+    return await this.extender.forwardInside(serialNo, args);
   }
 }
 
@@ -287,8 +290,11 @@ export class MethodCallerCallingExtenderOutsidePort<
     this.extender = extender;
   }
   extender: MethodCallerCallingPortExtender<Sels, Methods>;
-  protected _recv(serialNo: number, args: Methods[Sels][0]): boolean {
-    return this.extender.forwardInside(serialNo, args);
+  protected async _recv(
+    serialNo: number,
+    args: Methods[Sels][0]
+  ): Promise<boolean> {
+    return await this.extender.forwardInside(serialNo, args);
   }
 }
 
@@ -310,8 +316,8 @@ export class MethodCalleeCallingExtenderInsidePort<
   }
   serialNo: MethodCallingSerialNo;
   extender: MethodCalleeCallingPortExtender<Sels, Methods>;
-  protected _recv(ret: Methods[Sel][1]): boolean {
-    return this.extender.forwardOutside(this.serialNo, ret);
+  protected async _recv(ret: Methods[Sel][1]): Promise<boolean> {
+    return await this.extender.forwardOutside(this.serialNo, ret);
   }
 }
 
@@ -333,8 +339,8 @@ export class MethodCallerCallingExtenderInsidePort<
   }
   serialNo: MethodCallingSerialNo;
   extender: MethodCallerCallingPortExtender<Sels, Methods>;
-  protected _recv(ret: Methods[Sel][1]): boolean {
-    return this.extender.forwardOutside(this.serialNo, ret);
+  protected async _recv(ret: Methods[Sel][1]): Promise<boolean> {
+    return await this.extender.forwardOutside(this.serialNo, ret);
   }
 }
 
@@ -371,20 +377,20 @@ export class MethodCalleeCallingPortExtender<
     return newPort;
   }
 
-  forwardInside(
+  async forwardInside(
     serialNo: MethodCallingSerialNo,
     args: Methods[Sels][0]
-  ): boolean {
+  ): Promise<boolean> {
     let port = this.toInsidePort[serialNo];
     if (!port) return false;
-    return port.send(args);
+    return await port.send(args);
   }
 
-  forwardOutside(
+  async forwardOutside(
     serialNo: MethodCallingSerialNo,
     ret: Methods[Sels][1]
-  ): boolean {
-    return this.toOutsidePort.send(serialNo, ret);
+  ): Promise<boolean> {
+    return await this.toOutsidePort.send(serialNo, ret);
   }
 }
 
@@ -415,20 +421,20 @@ export class MethodCallerCallingPortExtender<
     return newPort;
   }
 
-  forwardInside(
+  async forwardInside(
     serialNo: MethodCallingSerialNo,
     args: Methods[Sels][0]
-  ): boolean {
+  ): Promise<boolean> {
     let port = this.toInsidePort[serialNo];
     if (!port) return false;
-    return port.send(args);
+    return await port.send(args);
   }
 
-  forwardOutside(
+  async forwardOutside(
     serialNo: MethodCallingSerialNo,
     ret: Methods[Sels][1]
-  ): boolean {
-    return this.toOutsidePort.send(serialNo, ret);
+  ): Promise<boolean> {
+    return await this.toOutsidePort.send(serialNo, ret);
   }
 }
 
