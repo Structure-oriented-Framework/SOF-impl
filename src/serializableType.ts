@@ -23,10 +23,28 @@ export type Serializable =
   | Array<Serializable>
   | SerializableObject;
 
-export function safeJSONStringify(value: Serializable): string {
-  return JSON.stringify(value);
+export const JSONStringTypeSym = Symbol();
+
+export type JSONString<T extends Serializable> = string & {
+  [JSONStringTypeSym]: T;
+};
+
+export function safeJSONStringify<T extends Serializable>(value: T): JSONString<T> {
+  let str = JSON.stringify(value);
+  return str as JSONString<T>;
 }
 
-export function safeJSONParse(value: string): Serializable {
+export function safeJSONParse<T extends Serializable>(value: JSONString<T>): T {
   return JSON.parse(value);
 }
+
+export type StringifiedSerializableValues<T extends Serializable[]> = T extends [
+  infer T0,
+  ...infer Ts
+]
+  ? T0 extends Serializable
+    ? Ts extends Serializable[]
+      ? [JSONString<T0>, ...StringifiedSerializableValues<Ts>]
+      : never
+    : never
+  : T;
