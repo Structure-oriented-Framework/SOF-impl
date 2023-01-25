@@ -99,7 +99,7 @@ export class StaticExtender<
     to: To,
     ...data: ParamsDistribute[To]
   ): Promise<boolean> {
-    return (await this.select(to)?.send(...data)) || false;
+    return (await this.select(to)?.send(...data)) ?? false;
   }
   async collect<From extends Sels>(
     from: From,
