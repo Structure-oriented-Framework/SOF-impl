@@ -1,6 +1,6 @@
 import { Param } from "./port.js";
 import {
-  StringifiedSerializableValues,
+  JSONString,
   safeJSONParse,
   safeJSONStringify,
 } from "./serializableType.js";
@@ -12,22 +12,16 @@ export class JsonTunnel<
 > extends Tunnel<
   ParamsIn,
   ParamsOut,
-  StringifiedSerializableValues<ParamsOut>,
-  StringifiedSerializableValues<ParamsIn>
+  [jsonStr: JSONString<ParamsOut>],
+  [jsonStr: JSONString<ParamsIn>]
 > {
-  protected async listenerA(params: ParamsIn): Promise<boolean> {
-    return await this.portB.send(
-      ...(params.map(
-        safeJSONStringify
-      ) as unknown as StringifiedSerializableValues<ParamsIn>)
-    );
+  protected async listenerA(...params: ParamsIn): Promise<boolean> {
+    return await this.portB.send(safeJSONStringify(params));
   }
 
   protected async listenerB(
-    params: StringifiedSerializableValues<ParamsOut>
+    jsonStr: JSONString<ParamsOut>
   ): Promise<boolean> {
-    return await this.portA.send(
-      ...(params.map(safeJSONParse as any) as ParamsOut)
-    );
+    return await this.portA.send(...safeJSONParse(jsonStr));
   }
 }
