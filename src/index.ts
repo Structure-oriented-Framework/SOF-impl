@@ -10,7 +10,22 @@ import {
 import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 import { PropsExposer, PropsShadow } from "./props.js";
+import { WebBridgeServer, WebBridgeClient } from "./webBridge.js";
 
+console.log("----TEST WebBridge----");
+
+const portA = new LogPort<[string], [number]>("A");
+const portB = new LogPort<[number], [string]>("B");
+
+Port.connect(portA, new WebBridgeServer(3000).port);
+setTimeout(() => {
+  Port.connect(portB, new WebBridgeClient("ws://locolhost:3000").port);
+}, 1000);
+
+setInterval(async () => {
+  await portA.send(12345);
+  await portB.send("Hello from portB");
+}, 2000);
 /*
 console.log("----TEST Props----");
 
@@ -40,7 +55,7 @@ log("2");
 exposer.patch("a", 3);
 log("3");
 */
-
+/*
 console.log("----TEST MethodCall----");
 
 const methods = {
@@ -68,7 +83,7 @@ MethodCall.connect(callee, caller);
   console.log("1+2=" + (await caller.call("add", 1, 2)));
   console.log('"a"+"b"=' + (await caller.call("cat", "a", "b")));
 })();
-
+*/
 /*
 console.log("----TEST Extender----");
 
