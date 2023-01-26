@@ -8,6 +8,7 @@
         "moduleResolution": "node",
         "module": "ESNext",
         "outDir": "./dist",
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
     }
 }
