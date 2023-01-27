@@ -1,1 +1,1 @@
-export type Component = Object;
+export type Component = object;
