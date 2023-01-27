@@ -7,14 +7,14 @@ class SelectorInstance {
     this.msg = msg;
   }
   toUniqueString(): string {
-    return `Selector(${this.domain},${this.id},${this.msg})`;
+    return `${this.domain}::${this.id}("${this.msg}")`;
   }
   private readonly domain: SelectorDomain;
   private readonly id: number;
   private readonly msg: string;
 }
 class SelectorFactory {
-  private static domain = "NOT FINISHED";
+  private static domain = "__";
   private static selectorTable: Record<number, SelectorInstance> = {};
   private static crtId = 0;
 
@@ -39,10 +39,10 @@ class SelectorFactory {
   }
 }
 
-export type Selector = SelectorInstance;
+export type Selector = string;
 
 export function Selector(msg = ""): Selector {
-  return SelectorFactory.new(msg);
+  return SelectorFactory.new(msg).toUniqueString();
 }
 Selector.from = SelectorFactory.from.bind(SelectorFactory);
 
@@ -52,7 +52,7 @@ export class SelectorMap<V> {
     this.map.clear();
   }
   delete(key: Selector) {
-    return this.map.delete(key.toUniqueString());
+    return this.map.delete(key);
   }
   forEach(callbackfn: (value: V) => void, thisArg?: any): void {
     this.map.forEach((value) => {
@@ -60,13 +60,13 @@ export class SelectorMap<V> {
     });
   }
   get(key: Selector): V | undefined {
-    return this.map.get(key.toUniqueString());
+    return this.map.get(key);
   }
   has(key: Selector): boolean {
-    return this.map.has(key.toUniqueString());
+    return this.map.has(key);
   }
   set(key: Selector, value: V): this {
-    this.map.set(key.toUniqueString(), value);
+    this.map.set(key, value);
     return this;
   }
 }
