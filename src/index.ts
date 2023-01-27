@@ -11,7 +11,8 @@ import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 import { PropsExposer, PropsShadow } from "./props.js";
 import { WebBridgeServer, WebBridgeClient } from "./webBridge.js";
-
+import { LinkGraghIndex, indexLinkTreeComponentInstance } from "./linkGragh/index.js";
+/*
 console.log("----TEST WebBridge----");
 
 const portA = new LogPort<[string], [number]>("A");
@@ -26,6 +27,7 @@ setInterval(async () => {
   await portA.send(12345);
   await portB.send("Hello from portB");
 }, 2000);
+*/
 /*
 console.log("----TEST Props----");
 
@@ -55,7 +57,7 @@ log("2");
 exposer.patch("a", 3);
 log("3");
 */
-/*
+
 console.log("----TEST MethodCall----");
 
 const methods = {
@@ -82,8 +84,17 @@ MethodCall.connect(callee, caller);
 (async () => {
   console.log("1+2=" + (await caller.call("add", 1, 2)));
   console.log('"a"+"b"=' + (await caller.call("cat", "a", "b")));
+
+  console.log("--Then, test linkGragh.getIndex");
+  
+  const index = new LinkGraghIndex();
+  
+  indexLinkTreeComponentInstance(index, caller);
+  
+  console.log(index);
+  
 })();
-*/
+
 /*
 console.log("----TEST Extender----");
 
