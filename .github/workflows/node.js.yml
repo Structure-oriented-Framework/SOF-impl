@@ -25,7 +25,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-    - run: npx pnpm ci
-    - run: npx --package typescript tsc
-    - run: npm run run
+        cache: 'pnpm'
+    - run: pnpm ci
+    - run: pnpm run build
+    - run: pnpm run run
