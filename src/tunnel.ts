@@ -48,24 +48,4 @@ export abstract class Tunnel<
   ): boolean {
     return this.connectA(toA) && this.connectB(toB);
   }
-
-  static connect<
-    ParamsA2B extends Param[],
-    ParamsB2A extends Param[],
-    TunnelCtor extends new (...args: TunnelCtorParams) => Tunnel<
-      ParamsA2B,
-      ParamsB2A
-    >,
-    TunnelCtorParams extends any[]
-  >(
-    a: PortToConnect<TunnelPort<ParamsA2B, ParamsB2A>>,
-    b: PortToConnect<TunnelPort<ParamsB2A, ParamsA2B>>,
-    tunnelCtor: TunnelCtor,
-    ...args: TunnelCtorParams
-  ) {
-    const t = new tunnelCtor(...args);
-    t.connectA(a);
-    t.connectB(b);
-    return t;
-  }
 }
