@@ -1,5 +1,7 @@
 import { Serializable } from "./serializableType.js";
 
+import "reflect-metadata";
+
 export type Param = Serializable;
 
 export type Receiver<Params extends Param[]> = (
@@ -7,16 +9,20 @@ export type Receiver<Params extends Param[]> = (
 ) => Promise<boolean>;
 
 export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
-  protected receiver: Receiver<ParamsO> | null = null;
+  protected _linkedTo: Port<ParamsO, ParamsI> | null = null;
 
-  private setReceiver(receiver: Receiver<ParamsO>): boolean {
-    this.receiver = receiver;
+  public get linkedTo(): Port<ParamsO, ParamsI> | null{
+    return this._linkedTo;
+  }
+
+  protected link(to: Port<ParamsO, ParamsI>): boolean {
+    this._linkedTo = to;
     return true;
   }
 
   async send(...params: ParamsO): Promise<boolean> {
-    if (!this.receiver) return false;
-    return await this.receiver(...params);
+    if (!this.linkedTo) return false;
+    return await this.linkedTo._recv.apply(this.linkedTo, params);
   }
 
   // async
@@ -26,10 +32,7 @@ export abstract class Port<ParamsI extends Param[], ParamsO extends Param[]> {
     portA: Port<ParamsB2A, ParamsA2B>,
     portB: Port<ParamsA2B, ParamsB2A>
   ): boolean {
-    return (
-      portA.setReceiver(portB._recv.bind(portB)) &&
-      portB.setReceiver(portA._recv.bind(portA))
-    );
+    return portA.link(portB) && portB.link(portA);
   }
 }
 
