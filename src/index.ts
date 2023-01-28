@@ -4,14 +4,46 @@ import { LogTunnel } from "./logTunnel.js";
 import { Tunnel } from "./tunnel.js";
 import {
   StaticExtender,
-  StaticExtenderSelector,
   StaticExtenderSigleSideI,
 } from "./staticExtender.js";
 import { Param, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
 import { PropsExposer, PropsShadow } from "./props.js";
 import { WebBridgeServer, WebBridgeClient } from "./webBridge.js";
-import { LinkGraghIndex, indexLinkTreeComponentInstance } from "./linkGragh/index.js";
+import {
+  LinkGraghIndex,
+  indexLinkTreeComponentInstance,
+} from "./linkGragh/index.js";
+import { Fork } from "./fork.js";
+import {
+  JsonString,
+  StringifiedSerializableValues,
+} from "./serializableType.js";
+import { JsonStringParams, JsonTunnel } from "./JsonTunnel.js";
+
+/*
+console.log("----TEST Fork----");
+type T1 = [a: { x: string }];
+type T2 = [b: { y: number }];
+
+const portA = new LogPort<T1, T2>("portA");
+
+const portB = new LogPort<[], T1>("portB");
+
+const tunnelC = new LogTunnel<T2, []>("tunnelC");
+
+const portD = new LogPort<JsonStringParams<T2>, JsonStringParams<never>>(
+  "portD"
+);
+
+Fork.connect(portA, portB, tunnelC.portA);
+
+JsonTunnel.connect(tunnelC.portB, portD);
+
+portA.send({ y: 1 });
+
+portB.send({ x: "a" });
+*/
 /*
 console.log("----TEST WebBridge----");
 
@@ -57,7 +89,7 @@ log("2");
 exposer.patch("a", 3);
 log("3");
 */
-
+/*
 console.log("----TEST MethodCall----");
 
 const methods = {
@@ -94,7 +126,7 @@ MethodCall.connect(callee, caller);
   console.log(index);
   
 })();
-
+*/
 /*
 console.log("----TEST Extender----");
 
@@ -170,8 +202,8 @@ console.log("S1", s1);
 console.log("S2", s2);
 console.log("Equal?", s1 === s2);
 
-let jstr1 = JSON.stringify(s1);
-let y = Selector.from(JSON.parse(jstr1));
+let jstr1 = Json.stringify(s1);
+let y = Selector.from(Json.parse(jstr1));
 
 console.log("Y:", y);
 console.log("Eq1:", y === s1);
