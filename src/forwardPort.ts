@@ -1,3 +1,4 @@
+import { DiodeInPort } from "./diodePort.js";
 import { Port, Param } from "./port.js";
 
 export class ForwardPort<
@@ -8,7 +9,20 @@ export class ForwardPort<
     super();
     this.toFunc = toFunc;
   }
-  toFunc: (...params: ParamsI) => Promise<boolean>;
+  protected toFunc: (...params: ParamsI) => Promise<boolean>;
+  protected async _recv(...params: ParamsI): Promise<boolean> {
+    return await this.toFunc(...params);
+  }
+}
+
+export class DiodeInForwardPort<
+  ParamsI extends Param[]
+> extends DiodeInPort<ParamsI> {
+  constructor(toFunc: (...params: ParamsI) => Promise<boolean>) {
+    super();
+    this.toFunc = toFunc;
+  }
+  protected toFunc: (...params: ParamsI) => Promise<boolean>;
   protected async _recv(...params: ParamsI): Promise<boolean> {
     return await this.toFunc(...params);
   }
