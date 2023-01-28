@@ -451,8 +451,8 @@ export class MethodCall {
 
 /*
     [[Callee]]
-        + [ctrlPort] <<===================================================>> ...the opposite ctrlPort -------+
-        + [callingPort1] <<>> [inside1] +                                                                    +-(Caller)
-        + [callingPort2] <<>> [inside2] +--CallingExtender--[outside] <<==>> ...the opposite CallingExtender +
+        + [ctrlPort] <<======================================================>> [ctrl] +
+        + [callingPort1] <<>> [inside1] +                                              +--StaticExtender--[collected] <<==~~~
+        + [callingPort2] <<>> [inside2] +--CallingExtender--[outside] <<==>> [calling] +
         + [callingPort3] <<>> [inside3] +
 */
