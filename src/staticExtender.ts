@@ -1,10 +1,10 @@
 import { Param, Port, type PortToConnect } from "./port.js";
 
-export type StaticExtenderSelector = string;
+export type Selector = string;
 
 export type StaticExtenderSigleSideI<
   To extends Sels,
-  Sels extends StaticExtenderSelector,
+  Sels extends Selector,
   ParamsDistribute extends StaticExtenderParamsDistribute<Sels>
 > = {
   [K in To]: [to: K, ...data: ParamsDistribute[K]];
@@ -12,26 +12,26 @@ export type StaticExtenderSigleSideI<
 
 export type StaticExtenderSigleSideO<
   From extends Sels,
-  Sels extends StaticExtenderSelector,
+  Sels extends Selector,
   ParamsCollect extends StaticExtenderParamsCollect<Sels>
 > = {
   [K in From]: [from: K, ...data: ParamsCollect[K]];
 }[From];
 
 export type StaticExtenderParamsDistribute<
-  Sels extends StaticExtenderSelector
+  Sels extends Selector
 > = Record<Sels, Param[]>;
 
-export type StaticExtenderParamsCollect<Sels extends StaticExtenderSelector> =
+export type StaticExtenderParamsCollect<Sels extends Selector> =
   Record<Sels, Param[]>;
 
 export class StaticExtenderSingleSidePort<
-  Sels extends StaticExtenderSelector,
+  Sels extends Selector,
   ParamsDistribute extends StaticExtenderParamsDistribute<Sels>,
   ParamsCollect extends StaticExtenderParamsCollect<Sels>
 > extends Port<
-  StaticExtenderSigleSideI<Sels, StaticExtenderSelector, ParamsDistribute>,
-  StaticExtenderSigleSideO<Sels, StaticExtenderSelector, ParamsCollect>
+  StaticExtenderSigleSideI<Sels, Selector, ParamsDistribute>,
+  StaticExtenderSigleSideO<Sels, Selector, ParamsCollect>
 > {
   constructor(
     extenderInstance: StaticExtender<Sels, ParamsDistribute, ParamsCollect>
@@ -50,7 +50,7 @@ export class StaticExtenderSingleSidePort<
 
 export class StaticExtenderMultiSidePort<
   Sel extends Sels,
-  Sels extends StaticExtenderSelector,
+  Sels extends Selector,
   ParamsDistribute extends StaticExtenderParamsDistribute<Sels>,
   ParamsCollect extends StaticExtenderParamsCollect<Sels>
 > extends Port<ParamsCollect[Sel], ParamsDistribute[Sel]> {
@@ -70,7 +70,7 @@ export class StaticExtenderMultiSidePort<
 }
 
 export class StaticExtender<
-  Sels extends StaticExtenderSelector,
+  Sels extends Selector,
   ParamsDistribute extends StaticExtenderParamsDistribute<Sels>,
   ParamsCollect extends StaticExtenderParamsCollect<Sels>
 > {
@@ -130,7 +130,7 @@ export class StaticExtender<
   }
 
   static connect<
-    Sels extends StaticExtenderSelector,
+    Sels extends Selector,
     ParamsDistribute extends StaticExtenderParamsDistribute<Sels>,
     ParamsCollect extends StaticExtenderParamsCollect<Sels>,
     StaticExtenderCtor extends new (

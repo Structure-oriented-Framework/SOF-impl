@@ -13,8 +13,9 @@ class SelectorInstance {
   private readonly id: number;
   private readonly msg: string;
 }
+
 class SelectorFactory {
-  private static domain = "__";
+  private static domain:SelectorDomain = Date.now().toFixed(0);
   private static selectorTable: Record<number, SelectorInstance> = {};
   private static crtId = 0;
 
@@ -45,28 +46,3 @@ export function Selector(msg = ""): Selector {
   return SelectorFactory.new(msg).toUniqueString();
 }
 Selector.from = SelectorFactory.from.bind(SelectorFactory);
-
-export class SelectorMap<V> {
-  private readonly map = new Map<string, V>();
-  clear() {
-    this.map.clear();
-  }
-  delete(key: Selector) {
-    return this.map.delete(key);
-  }
-  forEach(callbackfn: (value: V) => void, thisArg?: any): void {
-    this.map.forEach((value) => {
-      callbackfn.call(thisArg, value);
-    });
-  }
-  get(key: Selector): V | undefined {
-    return this.map.get(key);
-  }
-  has(key: Selector): boolean {
-    return this.map.has(key);
-  }
-  set(key: Selector, value: V): this {
-    this.map.set(key, value);
-    return this;
-  }
-}

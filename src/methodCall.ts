@@ -1,12 +1,11 @@
 import { DiodeInPort, DiodeOutPort } from "./diodePort.js";
 import { Port } from "./port.js";
+import { Selector } from "./selector.js";
 import { StaticExtender } from "./staticExtender.js";
-
-export type MethodSelector = string;
 
 export type MethodArgsRetPair = [argTypes: any[], retType: any];
 
-export type MethodMethodsData<Sels extends MethodSelector> = {
+export type MethodMethodsData<Sels extends Selector> = {
   [Sel in Sels]: MethodArgsRetPair;
 };
 
@@ -15,19 +14,19 @@ export type MethodFunctionType<Method extends MethodArgsRetPair> = (
 ) => Method[1];
 
 export type MethodFunctions<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Method extends MethodMethodsData<Sels>
 > = {
   [Sel in keyof Method]: MethodFunctionType<Method[Sel]>;
 };
 
 export type MethodCallCtrlParams<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = [sel: Sels, serialNo: MethodCallingSerialNo];
 
 export class MethodCalleeCtrlPort<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends DiodeInPort<MethodCallCtrlParams<Sels, Methods>> {
   constructor(callee: MethodCallee<Sels, Methods>) {
@@ -44,19 +43,19 @@ export class MethodCalleeCtrlPort<
 }
 
 export class MethodCallerCtrlPort<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends DiodeOutPort<MethodCallCtrlParams<Sels, Methods>> {}
 
 export type MethodCallingParams<
   Sel extends Sels,
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = [args: Methods[Sel][0]];
 
 export type MethodReturningParams<
   Sel extends Sels,
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = [ret: Methods[Sel][1]];
 
@@ -66,7 +65,7 @@ export type MethodCallingResolver<Method extends MethodArgsRetPair> = (
 
 export class MethodCalleeCallingPort<
   Sel extends Sels,
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends Port<
   MethodCallingParams<Sel, Sels, Methods>,
@@ -84,7 +83,7 @@ export class MethodCalleeCallingPort<
 
 export class MethodCallerCallingPort<
   Sel extends Sels,
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends Port<
   MethodReturningParams<Sel, Sels, Methods>,
@@ -115,7 +114,7 @@ export class MethodCallerCallingPort<
 export type MethodCallStaticExtenderSels = "ctrl" | "calling";
 
 export type MethodCallStaticExtenderCaller2Callee<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = {
   ctrl: MethodCallCtrlParams<Sels, Methods>;
@@ -123,7 +122,7 @@ export type MethodCallStaticExtenderCaller2Callee<
 };
 
 export type MethodCallStaticExtenderCallee2Caller<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = {
   ctrl: never;
@@ -131,7 +130,7 @@ export type MethodCallStaticExtenderCallee2Caller<
 };
 
 export class MethodCallee<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > {
   constructor(methods: MethodFunctions<Sels, Methods>) {
@@ -181,7 +180,7 @@ export class MethodCallee<
 }
 
 export class MethodCaller<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > {
   constructor() {
@@ -249,17 +248,17 @@ export class MethodCaller<
 export type MethodCallingSerialNo = number;
 
 export type MethodCallingParamsCollected<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = [serialNo: MethodCallingSerialNo, args: Methods[Sels][0]];
 
 export type MethodReturningParamsCollected<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > = [serialNo: MethodCallingSerialNo, ret: Methods[Sels][1]];
 
 export class MethodCalleeCallingExtenderOutsidePort<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends Port<
   MethodCallingParamsCollected<Sels, Methods>,
@@ -279,7 +278,7 @@ export class MethodCalleeCallingExtenderOutsidePort<
 }
 
 export class MethodCallerCallingExtenderOutsidePort<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends Port<
   MethodReturningParamsCollected<Sels, Methods>,
@@ -300,7 +299,7 @@ export class MethodCallerCallingExtenderOutsidePort<
 
 export class MethodCalleeCallingExtenderInsidePort<
   Sel extends Sels,
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends Port<
   MethodReturningParams<Sel, Sels, Methods>,
@@ -323,7 +322,7 @@ export class MethodCalleeCallingExtenderInsidePort<
 
 export class MethodCallerCallingExtenderInsidePort<
   Sel extends Sels,
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > extends Port<
   MethodCallingParams<Sel, Sels, Methods>,
@@ -345,7 +344,7 @@ export class MethodCallerCallingExtenderInsidePort<
 }
 
 type MethodCalleeCallingExtenderInsidePortHelper<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>,
   SelsCopy extends Sels = Sels
 > = SelsCopy extends unknown
@@ -353,7 +352,7 @@ type MethodCalleeCallingExtenderInsidePortHelper<
   : never;
 
 export class MethodCalleeCallingPortExtender<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > {
   toOutsidePort = new MethodCalleeCallingExtenderOutsidePort<Sels, Methods>(
@@ -395,7 +394,7 @@ export class MethodCalleeCallingPortExtender<
 }
 
 export class MethodCallerCallingPortExtender<
-  Sels extends MethodSelector,
+  Sels extends Selector,
   Methods extends MethodMethodsData<Sels>
 > {
   toOutsidePort = new MethodCallerCallingExtenderOutsidePort<Sels, Methods>(
@@ -440,7 +439,7 @@ export class MethodCallerCallingPortExtender<
 
 export class MethodCall {
   static connect<
-    Sels extends MethodSelector,
+    Sels extends Selector,
     Methods extends MethodMethodsData<Sels>
   >(
     callee: MethodCallee<Sels, Methods>,

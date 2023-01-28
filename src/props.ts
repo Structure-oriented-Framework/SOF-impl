@@ -2,14 +2,14 @@ import { ForwardPort } from "./forwardPort.js";
 import { PropsVersion, serializable2Hash } from "./serializable2Hash.js";
 import { Serializable } from "./serializableType.js";
 
-export type PropsSelector = string;
+export type Selector = string;
 
-export type PropsType<Sels extends PropsSelector> = {
+export type PropsType<Sels extends Selector> = {
   [Sel in Sels]: Serializable;
 };
 
 export type PropsPatchParams<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > = {
   [Sel in Sels]: [
@@ -23,7 +23,7 @@ export type PropsPatchParams<
 export type PropsExposer2ShadowActionType = "init" | "patch";
 
 export type PropsExposer2ShadowActionArgs<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > = {
   init: [propsVal: Props, propsVersion: PropsVersion];
@@ -31,7 +31,7 @@ export type PropsExposer2ShadowActionArgs<
 };
 
 export type PropsExposer2ShadowParams<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>,
   ActionType extends PropsExposer2ShadowActionType
 > = {
@@ -44,14 +44,14 @@ export type PropsExposer2ShadowParams<
 export type PropsShadow2ExposerActionType = "patch";
 
 export type PropsShadow2ExposerActionArgs<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > = {
   patch: PropsPatchParams<Sels, Props>;
 };
 
 export type PropsShadow2ExposerParams<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>,
   ActionType extends PropsShadow2ExposerActionType
 > = {
@@ -62,7 +62,7 @@ export type PropsShadow2ExposerParams<
 }[ActionType];
 
 export class PropsExposerPort<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > extends ForwardPort<
   PropsShadow2ExposerParams<Sels, Props, PropsShadow2ExposerActionType>,
@@ -70,7 +70,7 @@ export class PropsExposerPort<
 > {}
 
 export class PropsShadowPort<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > extends ForwardPort<
   PropsExposer2ShadowParams<Sels, Props, PropsExposer2ShadowActionType>,
@@ -78,7 +78,7 @@ export class PropsShadowPort<
 > {}
 
 export class PropsExtenderShadowBase<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > {
   constructor() {
@@ -101,7 +101,7 @@ export class PropsExtenderShadowBase<
 }
 
 export class PropsExposer<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > extends PropsExtenderShadowBase<Sels, Props> {
   port = new PropsExposerPort<Sels, Props>(this.recv.bind(this));
@@ -155,7 +155,7 @@ export class PropsExposer<
 }
 
 export class PropsShadow<
-  Sels extends PropsSelector,
+  Sels extends Selector,
   Props extends PropsType<Sels>
 > extends PropsExtenderShadowBase<Sels, Props> {
   // The using of `any` next line may because of https://github.com/microsoft/TypeScript/issues/52354
