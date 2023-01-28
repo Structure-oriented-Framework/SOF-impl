@@ -12,21 +12,22 @@ export type PropsPatchParams<
   Props extends PropsType<Sels>
 > = {
   [Sel in Sels]: [
-    oldVer: PropsVersion,
-    newVer: PropsVersion,
+    oldVersion: PropsVersion,
+    newVersion: PropsVersion,
     sel: Sel,
-    newVal: Props[Sel]
+    newValue: Props[Sel]
   ];
 }[Sels];
 
-export type PropsExposer2ShadowActionType = "init" | "patch";
+export type PropsExposer2ShadowActionType = "init" | "patch" | "reset";
 
 export type PropsExposer2ShadowActionArgs<
   Sels extends Selector,
   Props extends PropsType<Sels>
 > = {
-  init: [propsVal: Props, propsVersion: PropsVersion];
+  init: [propsValue: Props, propsVersion: PropsVersion];
   patch: PropsPatchParams<Sels, Props>;
+  reset: [newValue: Props, newVersion: PropsVersion];
 };
 
 export type PropsExposer2ShadowParams<
@@ -40,13 +41,18 @@ export type PropsExposer2ShadowParams<
   ];
 }[ActionType];
 
-export type PropsShadow2ExposerActionType = "patch";
+export type PropsShadow2ExposerActionType = "patch" | "reset";
 
 export type PropsShadow2ExposerActionArgs<
   Sels extends Selector,
   Props extends PropsType<Sels>
 > = {
   patch: PropsPatchParams<Sels, Props>;
+  reset: [
+    oldVersion: PropsVersion,
+    newValue: Props,
+    newVersionsion: PropsVersion
+  ];
 };
 
 export type PropsShadow2ExposerParams<
@@ -103,7 +109,8 @@ export class PropsExposer<
   Sels extends Selector,
   Props extends PropsType<Sels>
 > extends PropsExtenderShadowBase<Sels, Props> {
-  port = new PropsExposerPort<Sels, Props>(this.recv.bind(this));
+  // The using of `any` next line may because of https://github.com/microsoft/TypeScript/issues/52354
+  port = new PropsExposerPort<Sels, Props>(this.recv.bind(this) as any);
 
   async init(props: Props): Promise<boolean> {
     this._props = props;
@@ -113,15 +120,15 @@ export class PropsExposer<
 
   async patch<Sel extends Sels>(
     sel: Sel,
-    newVal: Props[Sel]
+    newValue: Props[Sel]
   ): Promise<boolean> {
-    const oldVer = this._propsVersion;
+    const oldVersion = this._propsVersion;
     if (!this._props) throw new Error("Cannot patch null props!");
-    this._props[sel] = newVal;
-    const newVer = this.updateVersion();
+    this._props[sel] = newValue;
+    const newVersion = this.updateVersion();
     // See https://github.com/microsoft/TypeScript/issues/52354, that's why I use `any` next line
     return await this.port.send(
-      ...(["patch", oldVer, newVer, sel, newVal] as any)
+      ...(["patch", oldVersion, newVersion, sel, newValue] as any)
     );
   }
 
@@ -135,14 +142,25 @@ export class PropsExposer<
   ): Promise<boolean> {
     switch (actionType) {
       case "patch": {
-        const [oldVer, newVer, sel, newVal] =
+        const [oldVersion, newVersion, sel, newValue] =
           args as PropsShadow2ExposerActionArgs<Sels, Props>[typeof actionType];
-        if (oldVer !== this._propsVersion) {
+        if (oldVersion !== this._propsVersion) {
           return false;
         }
         if (!this._props) throw new Error("Cannot patch null props!");
-        this._props[sel] = newVal;
-        this._propsVersion = newVer;
+        this._props[sel] = newValue;
+        this._propsVersion = newVersion;
+        break;
+      }
+      case "reset": {
+        const [oldVersion, newValue, newVersion] =
+          args as PropsShadow2ExposerActionArgs<Sels, Props>[typeof actionType];
+        if (oldVersion !== this._propsVersion) {
+          return false;
+        }
+        if (!this._props) throw new Error("Cannot reset null props!");
+        this._props = newValue;
+        this._propsVersion = newVersion;
         break;
       }
       default: {
@@ -162,13 +180,14 @@ export class PropsShadow<
 
   async patch<Sel extends Sels>(
     sel: Sel,
-    newVal: Props[Sel]
+    newValue: Props[Sel]
   ): Promise<boolean> {
-    const oldVer = this._propsVersion;
+    const oldVersion = this._propsVersion;
     if (!this._props) throw new Error("Cannot patch null props!");
-    this._props[sel] = newVal;
-    const newVer = this.updateVersion();
-    return await this.port.send("patch", oldVer, newVer, sel, newVal);
+    this._props[sel] = newValue;
+    const newVersion = this.updateVersion();
+    //@ts-ignore Reason: the same as above.
+    return await this.port.send("patch", oldVersion, newVersion, sel, newValue);
   }
 
   protected async recv<ActionType extends PropsExposer2ShadowActionType>(
@@ -181,23 +200,29 @@ export class PropsShadow<
   ): Promise<boolean> {
     switch (actionType) {
       case "init": {
-        const [propsVal, propsVersion] = args as PropsExposer2ShadowActionArgs<
-          Sels,
-          Props
-        >[typeof actionType];
-        this._props = propsVal;
+        const [propsValue, propsVersion] =
+          args as PropsExposer2ShadowActionArgs<Sels, Props>[typeof actionType];
+        this._props = propsValue;
         this._propsVersion = propsVersion;
         break;
       }
       case "patch": {
-        const [_oldVer, newVer, sel, newVal] =
+        const [_oldVersion, newVersion, sel, newValue] =
           args as PropsExposer2ShadowActionArgs<Sels, Props>[typeof actionType];
-        // No matter what `oldVer` is, the Shadow props must follow the Exposer,
-        //  so `_oldVer` is not used here.
-        // Maybe we can report it to Exposer when `oldVer`!==`this.propsVersion` if necessary.
+        // No matter what `oldVersion` is, the Shadow props must follow the Exposer,
+        //  so `_oldVersion` is not used here.
+        // Maybe we can report it to Exposer when `oldVersion`!==`this.propsVersion` if necessary.
         if (!this._props) throw new Error("Cannot patch null props!");
-        this._props[sel] = newVal;
-        this._propsVersion = newVer;
+        this._props[sel] = newValue;
+        this._propsVersion = newVersion;
+        break;
+      }
+      case "reset": {
+        const [newValue, newVersion] =
+          args as PropsExposer2ShadowActionArgs<Sels, Props>[typeof actionType];
+        if (!this._props) throw new Error("Cannot reset null props!");
+        this._props = newValue;
+        this._propsVersion = newVersion;
         break;
       }
       default: {
