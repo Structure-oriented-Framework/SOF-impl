@@ -1,8 +1,7 @@
 import { ForwardPort } from "./forwardPort.js";
+import { Selector } from "./selector.js";
 import { PropsVersion, serializable2Hash } from "./serializable2Hash.js";
 import { Serializable } from "./serializableType.js";
-
-export type Selector = string;
 
 export type PropsType<Sels extends Selector> = {
   [Sel in Sels]: Serializable;

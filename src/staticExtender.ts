@@ -1,6 +1,5 @@
 import { Param, Port, type PortToConnect } from "./port.js";
-
-export type Selector = string;
+import { Selector } from "./selector.js";
 
 export type StaticExtenderSigleSideI<
   To extends Sels,
