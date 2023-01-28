@@ -7,11 +7,11 @@ import { Param } from "./port.js";
 import { JsonTunnel } from "./JsonTunnel.js";
 import { Socket as ClientSocket, io } from "socket.io-client";
 import { ForwardPort } from "./forwardPort.js";
-import { JSONString } from "./serializableType.js";
+import { JsonString } from "./serializableType.js";
 
 type EventsMap<Params extends Param[]> = {
   params: (
-    jsonStr: JSONString<Params>,
+    jsonStr: JsonString<Params>,
     callback: (ret: boolean) => void
   ) => void;
 };
@@ -23,13 +23,13 @@ export class WebBridgeBaseClass<
     on(
       ev: "params",
       listener: (
-        jsonStr: JSONString<ParamsRecv>,
+        jsonStr: JsonString<ParamsRecv>,
         callback: (ret: boolean) => void
       ) => void
     ): void;
     emit(
       ev: "params",
-      jsonStr: JSONString<ParamsSend>,
+      jsonStr: JsonString<ParamsSend>,
       callback: (ret: boolean) => void
     ): void;
   }
@@ -42,7 +42,7 @@ export class WebBridgeBaseClass<
 
   protected registerEvents(): void {
     if (!this.socket) throw new Error("socket is null");
-    this.socket.on("params", (jsonStr: JSONString<ParamsRecv>, callback) => {
+    this.socket.on("params", (jsonStr: JsonString<ParamsRecv>, callback) => {
       (async () => {
         callback(await this.portToJsonTunnel.send(jsonStr));
       })();
@@ -55,11 +55,11 @@ export class WebBridgeBaseClass<
   }
 
   protected portToJsonTunnel = new ForwardPort<
-    [jsonStr: JSONString<ParamsSend>],
-    [jsonStr: JSONString<ParamsRecv>]
+    [jsonStr: JsonString<ParamsSend>],
+    [jsonStr: JsonString<ParamsRecv>]
   >(this.recvJson.bind(this));
 
-  protected async recvJson(jsonStr: JSONString<ParamsSend>): Promise<boolean> {
+  protected async recvJson(jsonStr: JsonString<ParamsSend>): Promise<boolean> {
     const promise = new Promise<boolean>((resolve, reject) => {
       if (!this.socket) throw new Error("socket is null: " + this.socket);
       this.socket.emit("params", jsonStr, resolve);

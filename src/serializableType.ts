@@ -23,25 +23,25 @@ export type Serializable =
   | Array<Serializable>
   | SerializableObject;
 
-export const JSONStringTypeSym = Symbol();
+export const JsonStringTypeSym = Symbol();
 
-export type JSONString<T extends Serializable> = string & {
+export type JsonString<T extends Serializable> = string & {
   /**
    * This is always `undefined` in runtime!
    * It is only a trick to make TypeScript happy.
    * Every assignment to it uses `as` operator.
    */
-  [JSONStringTypeSym]: T;
+  [JsonStringTypeSym]: T;
 };
 
-export function safeJSONStringify<T extends Serializable>(
+export function safeJsonStringify<T extends Serializable>(
   value: T
-): JSONString<T> {
+): JsonString<T> {
   let str = JSON.stringify(value);
-  return str as JSONString<T>;
+  return str as JsonString<T>;
 }
 
-export function safeJSONParse<T extends Serializable>(value: JSONString<T>): T {
+export function safeJsonParse<T extends Serializable>(value: JsonString<T>): T {
   return JSON.parse(value);
 }
 
@@ -49,7 +49,7 @@ export type StringifiedSerializableValues<T extends Serializable[]> =
   T extends [infer T0, ...infer Ts]
     ? T0 extends Serializable
       ? Ts extends Serializable[]
-        ? [JSONString<T0>, ...StringifiedSerializableValues<Ts>]
+        ? [JsonString<T0>, ...StringifiedSerializableValues<Ts>]
         : never
       : never
     : T;
