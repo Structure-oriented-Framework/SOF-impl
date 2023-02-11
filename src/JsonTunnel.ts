@@ -1,4 +1,4 @@
-import { Param, PortToConnect } from "./port.js";
+import { Data, PortToConnect } from "./port.js";
 import {
   JsonString,
   safeJsonParse,
@@ -6,31 +6,31 @@ import {
 } from "./serializableType.js";
 import { Tunnel, TunnelPort } from "./tunnel.js";
 
-export type JsonStringParams<Params extends Param[]> = [
+export type JsonStringParams<Params extends Data[]> = [
   jsonStr: JsonString<Params>
 ];
 
 export class JsonTunnel<
-  ParamsIn extends Param[],
-  ParamsOut extends Param[]
+  TInn extends Data[],
+  TOutut extends Data[]
 > extends Tunnel<
-  ParamsIn,
-  ParamsOut,
-  JsonStringParams<ParamsOut>,
-  JsonStringParams<ParamsIn>
+  TInn,
+  TOutut,
+  JsonStringParams<TOutut>,
+  JsonStringParams<TInn>
 > {
-  protected async listenerA(...params: ParamsIn): Promise<boolean> {
+  protected async listenerA(...params: TInn): Promise<boolean> {
     return await this.portB.send(safeJsonStringify(params));
   }
 
-  protected async listenerB(jsonStr: JsonString<ParamsOut>): Promise<boolean> {
+  protected async listenerB(jsonStr: JsonString<TOutut>): Promise<boolean> {
     return await this.portA.send(...safeJsonParse(jsonStr));
   }
 
-  static connect<ParamsIn extends Param[], ParamsOut extends Param[]>(
-    toRawSide: PortToConnect<TunnelPort<ParamsIn, ParamsOut>>,
+  static connect<TInn extends Data[], TOutut extends Data[]>(
+    toRawSide: PortToConnect<TunnelPort<TInn, TOutut>>,
     toJsonSide: PortToConnect<
-      TunnelPort<JsonStringParams<ParamsOut>, JsonStringParams<ParamsIn>>
+      TunnelPort<JsonStringParams<TOutut>, JsonStringParams<TInn>>
     >
   ) {
     const t = new JsonTunnel();

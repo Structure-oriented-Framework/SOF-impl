@@ -1,9 +1,9 @@
-import { Param, Port, PortToConnect } from "./port.js";
+import { Data, Port, PortToConnect } from "./port.js";
 import { Tunnel, TunnelPort } from "./tunnel.js";
 
 export class LogTunnel<
-  ParamsA2B extends Param[],
-  ParamsB2A extends Param[]
+  ParamsA2B extends Data[],
+  ParamsB2A extends Data[]
 > extends Tunnel<ParamsA2B, ParamsB2A> {
   constructor(name = "unNamed") {
     super();
@@ -25,7 +25,7 @@ export class LogTunnel<
     return await this.portA.send(...params);
   }
 
-  static connect<ParamsA2B extends Param[], ParamsB2A extends Param[]>(
+  static connect<ParamsA2B extends Data[], ParamsB2A extends Data[]>(
     a: PortToConnect<TunnelPort<ParamsA2B, ParamsB2A>>,
     b: PortToConnect<TunnelPort<ParamsB2A, ParamsA2B>>,
     name: string = "unNamed"

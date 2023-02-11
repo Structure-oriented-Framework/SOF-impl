@@ -1,22 +1,22 @@
-import { Param, Port } from "./port.js";
+import { Data, Port } from "./port.js";
 
 export class LogPort<
-  ParamsI extends Param[],
-  ParamsO extends Param[]
-> extends Port<ParamsI, ParamsO> {
+  TIn extends Data[],
+  TOut extends Data[]
+> extends Port<TIn, TOut> {
   constructor(name = "unNamed") {
     super();
     this.name = name;
   }
   name;
-  protected async _recv(...params: ParamsI) {
+  protected async _recv(...params: TIn) {
     console.log(
       "LogPort [" + this.name + "]: Receive",
       params.length < 2 ? params[0] : params
     );
     return true;
   }
-  async send(...params: ParamsO) {
+  async send(...params: TOut) {
     console.log(
       "LogPort [" + this.name + "]: Send",
       params.length < 2 ? params[0] : params

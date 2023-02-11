@@ -23,6 +23,31 @@ export type Serializable =
   | Array<Serializable>
   | SerializableObject;
 
+export type ToSerializable<T> = T extends object
+  ? {
+      [K in Extract<keyof T, SerializableIndex>]: ToSerializable<T[K]>;
+    }
+  : [T] extends [Serializable]
+  ? T
+  : undefined | Extract<T, Serializable>;
+
+export type ToSerializableValues<T extends any[]> = T extends [
+  infer T0,
+  ...infer Ts
+]
+  ? [ToSerializable<T0>, ...ToSerializableValues<Ts>]
+  : T;
+
+export function toSerializable<T>(v: T): ToSerializable<T> {
+  return v as ToSerializable<T>; // Do nothing since unserializable props in `v` will be ignored.
+}
+
+export function toSerializableValues<T extends any[]>(
+  v: T
+): ToSerializableValues<T> {
+  return v as ToSerializableValues<T>; // Do nothing since unserializable props in `v` will be ignored.
+}
+
 export const JsonStringTypeSym = Symbol();
 
 export type JsonString<T extends Serializable> = string & {

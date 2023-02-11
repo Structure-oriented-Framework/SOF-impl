@@ -3,13 +3,13 @@ import {
   ServerOptions,
   Server as SocketIOServer,
 } from "socket.io";
-import { Param } from "./port.js";
+import { Data } from "./port.js";
 import { JsonTunnel } from "./JsonTunnel.js";
 import { Socket as ClientSocket, io } from "socket.io-client";
 import { ForwardPort } from "./forwardPort.js";
 import { JsonString } from "./serializableType.js";
 
-type EventsMap<Params extends Param[]> = {
+type EventsMap<Params extends Data[]> = {
   params: (
     jsonStr: JsonString<Params>,
     callback: (ret: boolean) => void
@@ -17,8 +17,8 @@ type EventsMap<Params extends Param[]> = {
 };
 
 export class WebBridgeBaseClass<
-  ParamsSend extends Param[],
-  ParamsRecv extends Param[],
+  ParamsSend extends Data[],
+  ParamsRecv extends Data[],
   Socket extends {
     on(
       ev: "params",
@@ -69,8 +69,8 @@ export class WebBridgeBaseClass<
 }
 
 export class WebBridgeServer<
-  ParamsSend extends Param[],
-  ParamsRecv extends Param[]
+  ParamsSend extends Data[],
+  ParamsRecv extends Data[]
 > extends WebBridgeBaseClass<
   ParamsSend,
   ParamsRecv,
@@ -91,8 +91,8 @@ export class WebBridgeServer<
 }
 
 export class WebBridgeClient<
-  ParamsSend extends Param[],
-  ParamsRecv extends Param[]
+  ParamsSend extends Data[],
+  ParamsRecv extends Data[]
 > extends WebBridgeBaseClass<
   ParamsSend,
   ParamsRecv,

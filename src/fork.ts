@@ -1,8 +1,8 @@
 import { DiodeOutPort } from "./diodePort.js";
 import { DiodeInForwardPort, ForwardPort } from "./forwardPort.js";
-import { Param, Port, PortToConnect } from "./port.js";
+import { Data, Port, PortToConnect } from "./port.js";
 
-export class Fork<ParamsToFork extends Param[], ParamsToMerge extends Param[]> {
+export class Fork<ParamsToFork extends Data[], ParamsToMerge extends Data[]> {
   mergedPort = new ForwardPort<ParamsToFork, ParamsToMerge>(
     async (...params: ParamsToFork) => {
       return await this.forkedOutPort.send(...params);
@@ -15,7 +15,7 @@ export class Fork<ParamsToFork extends Param[], ParamsToMerge extends Param[]> {
   );
   forkedOutPort = new DiodeOutPort<ParamsToFork>();
 
-  static connect<ParamsToFork extends Param[], ParamsToMerge extends Param[]>(
+  static connect<ParamsToFork extends Data[], ParamsToMerge extends Data[]>(
     toMergedPort: PortToConnect<ForwardPort<ParamsToFork, ParamsToMerge>>,
     toForkedInPort: PortToConnect<DiodeInForwardPort<ParamsToMerge>>,
     toForkedOutPort: PortToConnect<DiodeOutPort<ParamsToFork>>

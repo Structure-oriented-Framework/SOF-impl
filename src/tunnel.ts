@@ -1,28 +1,28 @@
-import { Param, Port, PortToConnect } from "./port.js";
+import { Data, Port, PortToConnect } from "./port.js";
 
-type TunnelListener<ParamsI extends Param[]> = (
-  ...params: ParamsI
+type TunnelListener<TIn extends Data[]> = (
+  ...params: TIn
 ) => Promise<boolean>;
 
 export class TunnelPort<
-  ParamsI extends Param[],
-  ParamsO extends Param[]
-> extends Port<ParamsI, ParamsO> {
-  protected listener: TunnelListener<ParamsI> | null = null;
-  setListender(listener: TunnelListener<ParamsI>) {
+  TIn extends Data[],
+  TOut extends Data[]
+> extends Port<TIn, TOut> {
+  protected listener: TunnelListener<TIn> | null = null;
+  setListender(listener: TunnelListener<TIn>) {
     this.listener = listener;
   }
-  protected async _recv(...params: ParamsI): Promise<boolean> {
+  protected async _recv(...params: TIn): Promise<boolean> {
     if (!this.listener) return false;
     return await this.listener(...params);
   }
 }
 
 export abstract class Tunnel<
-  ParamsAIn extends Param[],
-  ParamsAOut extends Param[],
-  ParamsBIn extends Param[] = ParamsAOut,
-  ParamsBOut extends Param[] = ParamsAIn
+  ParamsAIn extends Data[],
+  ParamsAOut extends Data[],
+  ParamsBIn extends Data[] = ParamsAOut,
+  ParamsBOut extends Data[] = ParamsAIn
 > {
   constructor() {
     this.portA.setListender(this.listenerA.bind(this));

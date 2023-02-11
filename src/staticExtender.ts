@@ -1,4 +1,4 @@
-import { Param, Port, type PortToConnect } from "./port.js";
+import { Data, Port, type PortToConnect } from "./port.js";
 import { Selector } from "./selector.js";
 
 export type StaticExtenderSigleSideI<
@@ -19,10 +19,10 @@ export type StaticExtenderSigleSideO<
 
 export type StaticExtenderParamsDistribute<
   Sels extends Selector
-> = Record<Sels, Param[]>;
+> = Record<Sels, Data[]>;
 
 export type StaticExtenderParamsCollect<Sels extends Selector> =
-  Record<Sels, Param[]>;
+  Record<Sels, Data[]>;
 
 export class StaticExtenderSingleSidePort<
   Sels extends Selector,

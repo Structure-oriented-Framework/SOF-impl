@@ -6,9 +6,9 @@ import {
   StaticExtender,
   StaticExtenderSigleSideI,
 } from "./staticExtender.js";
-import { Param, Port } from "./port.js";
+import { Data, Port } from "./port.js";
 import { MethodCall, MethodCallee, MethodCaller } from "./methodCall.js";
-import { PropsExposer, PropsShadow } from "./props.js";
+import { PropsExposer, PropsShadow } from "./propPort.js";
 import { WebBridgeServer, WebBridgeClient } from "./webBridge.js";
 import {
   LinkGraghIndex,
